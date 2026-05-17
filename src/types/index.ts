@@ -32,24 +32,62 @@ export interface HourSubmission {
   feedback?: string;
 }
 
+export interface ActivityMock {
+  id: string;
+  title: string;
+  status: 'Pendente' | 'Aprovado' | 'Reprovado' | 'Em Análise';
+  date: string;
+  hours: number;
+  category: string;
+  description: string;
+  rejectionReason?: string;
+  attachment: {
+    name: string;
+    size: string;
+    type: string;
+  };
+  feedback?: {
+    author: string;
+    date: string;
+    text: string;
+  };
+}
+
+// ─── Course ──────────────────────────────────────────────────────────────────
+export interface Course {
+  id: string;
+  name: string;
+  unit: string;
+  module: string;
+  modality: 'Presencial' | 'EAD' | 'Híbrido';
+  status: 'Ativo' | 'Concluído' | 'Suspenso';
+  image: any;
+}
+
 // ─── Navigation ───────────────────────────────────────────────────────────────
 export type RootStackParamList = {
   // Tela de entrada
-  Welcome: undefined;      // ← primeira tela que o usuário vê
+  Welcome: undefined;        // ← primeira tela que o usuário vê
 
   // Fluxo de primeiro acesso
-  FirstAccess: undefined;  // ← quando é o primeiro login do usuário
+  FirstAccess: undefined;    // ← quando é o primeiro login do usuário
 
   // Auth stack
   Login: undefined;
   Register: undefined;
   ForgotPassword: undefined;
 
+  // Seleção de curso (após login)
+  SelectCourse: undefined;   // ← escolha do curso ativo do aluno
+
   // App stack
   Dashboard: undefined;
   SubmitHours: undefined;
+  SubmitDocument: undefined;
+  SubmitSuccess: undefined;
   HoursList: undefined;
-  HourDetail: { id: string };
+  Notifications: undefined;
+  HourDetail: { activity: ActivityMock };
   Profile: undefined;
   Settings: undefined;
 };

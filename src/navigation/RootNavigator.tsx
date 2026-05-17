@@ -7,17 +7,10 @@
  * Fluxo de navegação:
  *
  *   Não autenticado:
- *     Welcome ──► FirstAccess (1º acesso) ──► Login
- *                        ou
- *     Welcome ──► Login (já tem conta)
+ *     Welcome ──► FirstAccess ──► Login ──► SelectCourse
  *
  *   Autenticado:
  *     Dashboard ──► SubmitHours / Profile
- *
- * Como funciona o Stack Navigator:
- *   A primeira tela listada é a tela inicial.
- *   Ao chamar navigation.navigate('X'), a tela X é empilhada sobre a atual.
- *   Ao chamar navigation.goBack(), desempilha e volta para a anterior.
  */
 
 import React from 'react';
@@ -27,11 +20,17 @@ import { RootStackParamList } from '../types';
 
 // ─── Imports de telas ───────────────────────────────────────────────────
 import {
-  WelcomeScreen,       // 1ª tela: boas-vindas
-  FirstAccessScreen,   // 2ª tela: primeiro acesso (senha inicial)
+  WelcomeScreen,        // boas-vindas (apenas no 1º acesso)
+  FirstAccessScreen,    // primeiro acesso (senha inicial)
   LoginScreen,
+  SelectCourseScreen,   // seleção do curso ativo (após login)
   DashboardScreen,
+  HoursListScreen,
+  HourDetailScreen,
   SubmitHoursScreen,
+  SubmitDocumentScreen,
+  SubmitSuccessScreen,
+  NotificationsScreen,
   ProfileScreen,
 } from '../screens';
 
@@ -46,32 +45,27 @@ export default function RootNavigator() {
     // NavigationContainer é o "contexto" que envolve toda a navegação
     <NavigationContainer>
       <Stack.Navigator
+        initialRouteName="Welcome"
         screenOptions={{
           headerShown: false,  // remove o header padrão em todas as telas
           animation: 'fade',   // animação suave entre telas
         }}
       >
-        {!isAuthenticated ? (
-          // ── Fluxo de entrada (não autenticado) ─────────────────────────
-          // A primeira Stack.Screen é sempre a tela inicial do app
-          <>
-            {/* 1ª tela: Boas-vindas */}
-            <Stack.Screen name="Welcome" component={WelcomeScreen} />
+        {/* ── Fluxo de entrada ── */}
+        <Stack.Screen name="Welcome" component={WelcomeScreen} />
+        <Stack.Screen name="FirstAccess" component={FirstAccessScreen} />
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="SelectCourse" component={SelectCourseScreen} />
 
-            {/* 2ª tela: Primeiro Acesso — senha inicial do usuário */}
-            <Stack.Screen name="FirstAccess" component={FirstAccessScreen} />
-
-            {/* 3ª tela: Login normal */}
-            <Stack.Screen name="Login" component={LoginScreen} />
-          </>
-        ) : (
-          // ── Fluxo principal (autenticado) ───────────────────────────────
-          <>
-            <Stack.Screen name="Dashboard"   component={DashboardScreen} />
-            <Stack.Screen name="SubmitHours" component={SubmitHoursScreen} />
-            <Stack.Screen name="Profile"     component={ProfileScreen} />
-          </>
-        )}
+        {/* ── Fluxo principal (Dashboard) ── */}
+        <Stack.Screen name="Dashboard" component={DashboardScreen} />
+        <Stack.Screen name="HoursList" component={HoursListScreen} />
+        <Stack.Screen name="HourDetail" component={HourDetailScreen} />
+        <Stack.Screen name="SubmitHours" component={SubmitHoursScreen} />
+        <Stack.Screen name="SubmitDocument" component={SubmitDocumentScreen} />
+        <Stack.Screen name="SubmitSuccess" component={SubmitSuccessScreen} />
+        <Stack.Screen name="Notifications" component={NotificationsScreen} />
+        <Stack.Screen name="Profile" component={ProfileScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
