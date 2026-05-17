@@ -2,7 +2,7 @@
 
 # 📱 Sistema de Horas Mobile
 
-> Aplicativo mobile para registro, submissão e acompanhamento de horas complementares acadêmicas.
+> Aplicativo mobile para registro, submissão e acompanhamento de horas complementares acadêmicas do SENAC.
 
 ![React Native](https://img.shields.io/badge/React%20Native-0.81.5-61DAFB?style=for-the-badge&logo=react&logoColor=white)
 ![Expo](https://img.shields.io/badge/Expo-SDK%2054-000020?style=for-the-badge&logo=expo&logoColor=white)
@@ -16,11 +16,13 @@
 ## 📋 Sumário
 
 - [Sobre o Projeto](#-sobre-o-projeto)
+- [Telas Implementadas](#-telas-implementadas)
 - [Pré-requisitos](#-pré-requisitos)
 - [Instalação](#-instalação)
 - [Rodando o Projeto](#-rodando-o-projeto)
 - [Arquitetura de Pastas](#-arquitetura-de-pastas)
-- [Camadas da Aplicação](#-camadas-da-aplicação)
+- [Fluxo de Navegação](#-fluxo-de-navegação)
+- [Componentes Reutilizáveis](#-componentes-reutilizáveis)
 - [Dependências](#-dependências)
 - [Scripts Disponíveis](#-scripts-disponíveis)
 
@@ -28,7 +30,55 @@
 
 ## 📖 Sobre o Projeto
 
-O **Sistema de Horas Mobile** é o cliente mobile de um sistema de gestão de horas complementares. Ele permite que alunos submetam atividades para aprovação, coordenadores avaliem as submissões e o superadmin gerencie toda a plataforma — tudo pelo celular.
+O **Sistema de Horas Mobile** é o cliente mobile de um sistema de gestão de horas complementares do SENAC Acre. Ele permite que alunos submetam atividades para aprovação, coordenadores avaliem as submissões e o superadmin gerencie toda a plataforma — tudo pelo celular.
+
+---
+
+## 🖼️ Telas Implementadas
+
+### 1. Tela de Boas-vindas (`WelcomeScreen`)
+
+Primeira tela exibida ao abrir o app. Apresenta o logo do SENAC, slogan e o botão de entrada.
+
+**Arquivos:**
+- `src/screens/welcome/WelcomeScreen.tsx` — componente principal com animação de fade-in
+- `src/screens/welcome/WelcomeScreen.styles.ts` — estilos separados
+
+**Elementos visuais:**
+- Ondas decorativas pêssego no topo e na base (componente `WaveBackground`)
+- Logo SENAC centralizado (componente `SenacLogo`)
+- Título **"Bem-vindo ao Futuro"** e tagline
+- Barra divisória laranja decorativa
+- Botão **"Começar Jornada"** com sombra e animação de fade-in
+
+---
+
+### 2. Tela de Primeiro Acesso (`FirstAccessScreen`)
+
+Exibida após o clique em "Começar Jornada". Permite ao usuário criar seu acesso inicial ao sistema.
+
+**Arquivos:**
+- `src/screens/firstAccess/FirstAccessScreen.tsx` — componente principal com sub-componentes
+- `src/screens/firstAccess/FirstAccessScreen.styles.ts` — estilos separados
+
+**Sub-componentes internos (dentro do arquivo):**
+
+| Sub-componente | Responsabilidade |
+|---|---|
+| `AvatarPlaceholder` | Círculo com ícone de pessoa representando a foto do perfil |
+| `InputField` | Campo reutilizável com ícone Ionicons, borda de foco e toggle de senha |
+
+**Elementos visuais:**
+- Mesmas ondas pêssego da WelcomeScreen (reuso de `WaveBackground`)
+- Logo SENAC centralizado (reuso de `SenacLogo`)
+- Avatar circular com ícone de pessoa
+- Título **"Primeiro acesso"** e subtítulo **"Crie uma conta"**
+- Campo **Nome** com ícone `person-outline`
+- Campo **Matrícula ou E-mail** com ícone `person-outline`
+- Campo **Senha** com ícone `lock-closed-outline` e botão de olho (`eye-outline` / `eye-off-outline`)
+- Botão **"Entrar"** com sombra azul
+- Separador **"ou continue com"**
+- Link **"Primeiro acesso? Ative sua conta"** em laranja
 
 ---
 
@@ -40,7 +90,6 @@ Antes de começar, certifique-se de ter instalado:
 |---|---|---|
 | Node.js | 18.x ou superior | [nodejs.org](https://nodejs.org) |
 | npm | 9.x ou superior | Incluído com Node.js |
-| Expo CLI | Última versão | `npm install -g expo-cli` |
 | Expo Go (celular) | Qualquer | [App Store](https://apps.apple.com/app/expo-go/id982107779) / [Play Store](https://play.google.com/store/apps/details?id=host.exp.exponent) |
 
 > **Android Studio / Xcode** são necessários apenas para rodar em emulador local.
@@ -62,28 +111,19 @@ cd sistema-de-horas-mobile
 npm install
 ```
 
-Isso instalará todas as dependências listadas no `package.json`, incluindo:
-- Expo SDK
-- React Navigation
-- Axios
-- AsyncStorage
-- React Native Screens e Safe Area Context
-
 ### 3. Configure as variáveis de ambiente
 
-Crie um arquivo `.env` na raiz do projeto:
+Edite `src/constants/index.ts` com a URL correta da sua API:
 
-```env
-API_BASE_URL=https://sua-api.com/api
+```ts
+export const API_BASE_URL = 'https://sua-api.com/api';
 ```
-
-> Edite também `src/constants/index.ts` com a URL correta da sua API enquanto a integração com `.env` não estiver configurada.
 
 ---
 
 ## ▶️ Rodando o Projeto
 
-### No celular (recomendado para desenvolvimento)
+### No celular (recomendado)
 
 ```bash
 npm start
@@ -103,12 +143,6 @@ npm run android
 npm run ios
 ```
 
-### No navegador (limitado)
-
-```bash
-npm run web
-```
-
 ---
 
 ## 🗂️ Arquitetura de Pastas
@@ -116,36 +150,42 @@ npm run web
 ```
 sistema-de-horas-mobile/
 │
-├── App.tsx                    # Entry point — monta o RootNavigator
-├── index.ts                   # Registro do app no Expo
-├── app.json                   # Configurações do Expo (nome, ícone, splash…)
-├── tsconfig.json              # Configuração do TypeScript
-├── package.json               # Dependências e scripts
+├── App.tsx                         # Entry point — monta o RootNavigator
+├── index.ts                        # Registro do app no Expo
+├── app.json                        # Configurações do Expo (nome, ícone, splash…)
+├── tsconfig.json                   # Configuração do TypeScript
+├── package.json                    # Dependências e scripts
 │
-└── src/                       # Todo o código-fonte da aplicação
+└── src/
     │
-    ├── assets/                # Arquivos estáticos
-    │   ├── fonts/             # Fontes customizadas (.ttf, .otf)
-    │   ├── icons/             # Ícones SVG/PNG
-    │   └── images/            # Imagens estáticas
+    ├── assets/                     # Arquivos estáticos
+    │   ├── fonts/                  # Fontes customizadas
+    │   ├── icons/                  # Ícones SVG/PNG
+    │   └── images/                 # Imagens estáticas
     │
-    ├── components/            # Componentes de UI reutilizáveis
-    │   ├── common/            # Button, Input, Badge, Avatar…
-    │   ├── forms/             # FormField, DatePicker, Picker…
-    │   └── layout/            # Header, Card, Container, Divider…
+    ├── components/
+    │   └── common/
+    │       ├── WaveBackground.tsx  # 🆕 Ondas decorativas pêssego (topo/base)
+    │       └── SenacLogo.tsx       # 🆕 Logo SENAC em React Native puro
     │
     ├── constants/
-    │   └── index.ts           # URL da API, chaves do storage, categorias
+    │   └── index.ts                # URL da API, chaves do storage, categorias
     │
     ├── hooks/
-    │   ├── useApi.ts          # Hook genérico para chamadas HTTP
-    │   ├── useAuth.ts         # Autenticação + persistência de sessão
-    │   └── index.ts           # Barrel export
+    │   ├── useApi.ts               # Hook genérico para chamadas HTTP
+    │   ├── useAuth.ts              # Autenticação + persistência de sessão
+    │   └── index.ts                # Barrel export
     │
     ├── navigation/
-    │   └── RootNavigator.tsx  # Rotas Auth ↔ App (Stack Navigator)
+    │   └── RootNavigator.tsx       # Rotas: Welcome → FirstAccess → Login → App
     │
-    ├── screens/               # Telas do app (uma pasta por domínio)
+    ├── screens/
+    │   ├── welcome/                # 🆕 Tela de Boas-vindas
+    │   │   ├── WelcomeScreen.tsx
+    │   │   └── WelcomeScreen.styles.ts
+    │   ├── firstAccess/            # 🆕 Tela de Primeiro Acesso
+    │   │   ├── FirstAccessScreen.tsx
+    │   │   └── FirstAccessScreen.styles.ts
     │   ├── auth/
     │   │   └── LoginScreen.tsx
     │   ├── dashboard/
@@ -154,106 +194,82 @@ sistema-de-horas-mobile/
     │   │   └── SubmitHoursScreen.tsx
     │   ├── profile/
     │   │   └── ProfileScreen.tsx
-    │   └── index.ts           # Barrel export de todas as telas
+    │   └── index.ts                # Barrel export de todas as telas
     │
     ├── services/
     │   └── api/
-    │       ├── client.ts      # Instância Axios + interceptors de auth
-    │       ├── authService.ts # Login, logout, forgot-password
-    │       ├── hoursService.ts# CRUD de submissões de horas
-    │       └── index.ts       # Barrel export
+    │       ├── authService.ts      # Login, logout, primeiro acesso
+    │       ├── hoursService.ts     # CRUD de submissões de horas
+    │       └── index.ts
     │
     ├── store/
-    │   └── slices/            # Slices Redux Toolkit (estado global)
+    │   └── slices/                 # Estado global (Redux Toolkit)
     │
     ├── types/
-    │   └── index.ts           # Interfaces globais: User, HourSubmission…
+    │   └── index.ts                # Interfaces globais + RootStackParamList
     │
     └── utils/
-        ├── formatDate.ts      # formatDate, formatDateTime, formatHours
-        ├── validators.ts      # isValidEmail, isStrongPassword, isRequired
-        └── index.ts           # Barrel export
+        ├── formatDate.ts           # Formatação de datas
+        ├── validators.ts           # Validações (email, senha, etc.)
+        └── index.ts
 ```
+
+> 🆕 = Arquivo criado/atualizado recentemente
 
 ---
 
-## 🧱 Camadas da Aplicação
-
-A arquitetura segue o princípio de **separação de responsabilidades**, onde cada camada tem um papel bem definido:
+## 🗺️ Fluxo de Navegação
 
 ```
-┌─────────────────────────────────────────────┐
-│                  screens/                   │  ← UI + orquestração
-├─────────────────────────────────────────────┤
-│               components/                   │  ← Peças de UI reutilizáveis
-├─────────────────────────────────────────────┤
-│        hooks/          navigation/          │  ← Lógica stateful + rotas
-├─────────────────────────────────────────────┤
-│              services/api/                  │  ← Comunicação com o backend
-├─────────────────────────────────────────────┤
-│     constants/   types/   utils/   store/   │  ← Base compartilhada
-└─────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│  App abre                                                        │
+│       ↓                                                          │
+│  WelcomeScreen   ──[Começar Jornada]──►  FirstAccessScreen       │
+│                                                ↓                 │
+│                                          [Entrar]                │
+│                                                ↓                 │
+│                                          LoginScreen             │
+│                                                ↓                 │
+│                                    ┌─────────────────────┐       │
+│                                    │    App Stack         │       │
+│                                    │  Dashboard           │       │
+│                                    │  SubmitHours         │       │
+│                                    │  Profile             │       │
+│                                    └─────────────────────┘       │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-| Camada | Responsabilidade |
-|---|---|
-| `screens/` | Montar a UI de cada página; coordenar componentes e hooks |
-| `components/` | Peças de UI isoladas, sem lógica de negócio |
-| `navigation/` | Definição de rotas e proteção de acesso por autenticação |
-| `hooks/` | Lógica stateful reutilizável entre telas |
-| `services/api/` | Única camada que conhece a API; contém Axios + interceptors |
-| `store/` | Estado global da aplicação via Redux Toolkit |
-| `types/` | Contratos TypeScript compartilhados entre todas as camadas |
-| `constants/` | Valores de configuração e constantes da aplicação |
-| `utils/` | Funções puras e sem estado (formatação, validação) |
-
-### Fluxo de dados
-
-```
-Screen → Hook → Service (Axios) → API REST
-  ↑                                   |
-  └──────────── response ─────────────┘
-```
+Controlado em `src/navigation/RootNavigator.tsx` via `createNativeStackNavigator`.
 
 ---
 
-## 🏛️ Padrão Arquitetural
+## 🧩 Componentes Reutilizáveis
 
-O projeto utiliza a **Feature-Layered Architecture** — uma combinação de dois padrões consagrados:
+### `WaveBackground`
 
-### Layered Architecture (Arquitetura em Camadas)
+```tsx
+import WaveBackground from '../../components/common/WaveBackground';
 
-Cada pasta representa uma **camada com responsabilidade única**, e a comunicação flui sempre de cima para baixo. Uma camada superior pode conhecer a inferior, mas nunca o contrário:
+// Onda no topo da tela
+<WaveBackground position="top" />
 
-```
-screens        →  só conhece components e hooks
-hooks          →  só conhece services e types
-services/api   →  só conhece o backend via HTTP
-utils / types  →  base compartilhada, sem dependências internas
-```
-
-### Domain-based Folders (Pastas por Domínio)
-
-Dentro das camadas, os arquivos são agrupados por **contexto de negócio**, facilitando localizar e escalar cada funcionalidade de forma independente:
-
-```
-screens/auth/            → domínio: autenticação
-screens/hours/           → domínio: horas complementares
-screens/dashboard/       → domínio: painel principal
-services/api/authService.ts   → serviço do domínio auth
-services/api/hoursService.ts  → serviço do domínio horas
+// Onda na base da tela
+<WaveBackground position="bottom" />
 ```
 
-### Por que essa arquitetura?
+Cria as ondas decorativas pêssego usando `borderRadius` em `View` com `position: 'absolute'`. Reusada na `WelcomeScreen` e `FirstAccessScreen`.
 
-| Vantagem | Motivo |
-|---|---|
-| **Escalável** | Adicionar uma nova tela não afeta as demais |
-| **Testável** | Cada camada pode ser testada de forma isolada |
-| **Manutenível** | Fácil saber onde fica cada responsabilidade |
-| **Padrão de mercado** | Adotado pela maioria dos projetos React Native profissionais |
+---
 
-> **Em resumo:** não é Clean Architecture (mais complexa), nem simples MVC — é um meio-termo ideal para apps mobile de médio porte, focado em clareza e produtividade.
+### `SenacLogo`
+
+```tsx
+import SenacLogo from '../../components/common/SenacLogo';
+
+<SenacLogo />
+```
+
+Renderiza o logo do SENAC usando apenas primitivos React Native (triângulos com `borderWidth` + texto). Sem dependência de imagem externa.
 
 ---
 
@@ -266,6 +282,7 @@ services/api/hoursService.ts  → serviço do domínio horas
 | `expo` | ~54.0.33 | Plataforma base do projeto |
 | `react-native` | 0.81.5 | Framework mobile |
 | `react` | 19.1.0 | Biblioteca de UI |
+| `@expo/vector-icons` | ^15.0.3 | 🆕 Ícones vetoriais (Ionicons, MaterialIcons, etc.) |
 | `axios` | ^1.16.1 | Cliente HTTP com interceptors |
 | `@react-navigation/native` | ^7.2.4 | Navegação entre telas |
 | `@react-navigation/native-stack` | ^7.15.1 | Stack Navigator nativo |
@@ -280,6 +297,42 @@ services/api/hoursService.ts  → serviço do domínio horas
 |---|---|---|
 | `typescript` | ~5.9.2 | Tipagem estática |
 | `@types/react` | ~19.1.0 | Tipos do React |
+
+---
+
+### Por que `@expo/vector-icons`?
+
+A biblioteca `@expo/vector-icons` fornece acesso a mais de **30.000 ícones vetoriais** de famílias consagradas como **Ionicons**, MaterialIcons, FontAwesome e outras — tudo integrado ao Expo sem configuração adicional.
+
+Ícones utilizados no projeto:
+
+| Ícone | Família | Onde é usado |
+|---|---|---|
+| `person-outline` | Ionicons | Campo Nome e Matrícula (FirstAccess) |
+| `lock-closed-outline` | Ionicons | Campo Senha (FirstAccess) |
+| `eye-outline` | Ionicons | Botão mostrar senha |
+| `eye-off-outline` | Ionicons | Botão ocultar senha |
+| `person` | Ionicons | Avatar placeholder |
+
+```tsx
+// Exemplo de uso
+import { Ionicons } from '@expo/vector-icons';
+
+<Ionicons name="lock-closed-outline" size={20} color="#9CA3AF" />
+```
+
+---
+
+## 🎨 Paleta de Cores
+
+| Token | Cor | Uso |
+|---|---|---|
+| Azul SENAC | `#1A3D6D` | Títulos, botões, ícones focados |
+| Laranja SENAC | `#E87722` | Destaques, links, divider |
+| Pêssego (onda) | `#F5C9A0` | Ondas decorativas de fundo |
+| Texto principal | `#1A1A2E` | Títulos e labels |
+| Texto secundário | `#6B7280` | Subtítulos e placeholders |
+| Borda input | `#E5E7EB` | Campos em repouso |
 
 ---
 
@@ -306,7 +359,7 @@ npx tsc --noEmit
 
 ## 📄 Licença
 
-Este projeto é de uso acadêmico e privado.
+Este projeto é de uso acadêmico e privado — SENAC Acre.
 
 ---
 

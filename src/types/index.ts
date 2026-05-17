@@ -34,6 +34,12 @@ export interface HourSubmission {
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 export type RootStackParamList = {
+  // Tela de entrada
+  Welcome: undefined;      // ← primeira tela que o usuário vê
+
+  // Fluxo de primeiro acesso
+  FirstAccess: undefined;  // ← quando é o primeiro login do usuário
+
   // Auth stack
   Login: undefined;
   Register: undefined;

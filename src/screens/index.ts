@@ -1,3 +1,9 @@
+// Tela de entrada (primeira tela)
+export { default as WelcomeScreen } from './welcome/WelcomeScreen';
+
+// Tela de primeiro acesso
+export { default as FirstAccessScreen } from './firstAccess/FirstAccessScreen';
+
 // Telas Auth
 export { default as LoginScreen } from './auth/LoginScreen';
 
