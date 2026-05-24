@@ -39,6 +39,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types';
+import { useAuth } from '../../hooks';
 
 import WaveBackground from '../../components/common/WaveBackground';
 import SenacLogo from '../../components/common/SenacLogo';
@@ -126,22 +127,37 @@ function InputField({
 
 // ─── LoginScreen ──────────────────────────────────────────────────────────────
 export default function LoginScreen({ navigation }: Props) {
+  const { login } = useAuth();
   const [matricula, setMatricula] = useState('');
   const [senha, setSenha] = useState('');
 
   const [matriculaFocused, setMatriculaFocused] = useState(false);
   const [senhaFocused, setSenhaFocused] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleMatriculaChange = (text: string) => {
+    // Se conter apenas números, limita a 10 dígitos (tamanho padrão de matrícula)
+    if (/^\d*$/.test(text)) {
+      setMatricula(text.slice(0, 10));
+    } else {
+      // Se tiver letras ou arroba, permite formato livre de e-mail
+      setMatricula(text);
+    }
+  };
 
   const handleEntrar = async () => {
     if (!matricula || !senha) return;
     setLoading(true);
+    setError(null);
     try {
-      // TODO: chamar authService.login({ matricula, senha })
+      await login(matricula, senha);
       // Navega para a seleção de curso após login bem-sucedido
       navigation.navigate('SelectCourse');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erro no login:', err);
+      const msg = err.response?.data?.erro || err.message || 'Erro ao realizar login. Tente novamente.';
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -182,7 +198,7 @@ export default function LoginScreen({ navigation }: Props) {
               iconName="person-outline"
               placeholder="0020015786"
               value={matricula}
-              onChangeText={setMatricula}
+              onChangeText={handleMatriculaChange}
               isFocused={matriculaFocused}
               onFocus={() => setMatriculaFocused(true)}
               onBlur={() => setMatriculaFocused(false)}
@@ -205,6 +221,9 @@ export default function LoginScreen({ navigation }: Props) {
                 </TouchableOpacity>
               }
             />
+
+            {/* Mensagem de erro */}
+            {error && <Text style={styles.errorText}>{error}</Text>}
 
             {/* Botão Entrar */}
             <TouchableOpacity
@@ -329,6 +348,13 @@ const styles = StyleSheet.create({
     padding: 4,
   },
 
+  errorText: {
+    color: '#EF4444',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
   // Botão Entrar
   button: {
     backgroundColor: '#1A3D6D',

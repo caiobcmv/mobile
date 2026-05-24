@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,12 +8,14 @@ import {
   StatusBar,
   Platform,
   TextInput,
-  Image,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList, ActivityMock } from '../../types';
+import { useFocusEffect } from '@react-navigation/native';
+import { RootStackParamList, HourSubmission, ActivityMock } from '../../types';
+import { hoursService } from '../../services/api/hoursService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'HoursList'>;
 
@@ -53,21 +55,69 @@ const INITIAL_MOCK_ACTIVITIES: ActivityMock[] = [
   },
 ];
 
+const mapSubmissionToActivityMock = (sub: any): ActivityMock => {
+  const statusFormatted = 
+    sub.status === 'approved' ? 'Aprovado' as const :
+    sub.status === 'rejected' ? 'Reprovado' as const : 'Pendente' as const;
+  
+  const dateFormatted = sub.submitted_at || sub.created_at || new Date().toISOString();
+  
+  return {
+    id: String(sub.id),
+    title: sub.title,
+    status: statusFormatted,
+    date: `Enviado em ${new Date(dateFormatted).toLocaleDateString('pt-BR')}`,
+    hours: parseFloat(sub.approved_hours || sub.requested_hours || 0),
+    category: sub.category_name || 'Geral',
+    description: sub.description || '',
+    rejectionReason: sub.status === 'rejected' ? sub.feedback : undefined,
+    attachment: {
+      name: sub.original_filename || 'certificado.pdf',
+      size: sub.file_size_kb ? `${(sub.file_size_kb / 1024).toFixed(1)} MB` : '1.2 MB',
+      type: sub.mime_type?.includes('image') ? 'Image' : 'PDF Document'
+    },
+    feedback: sub.feedback ? {
+      author: 'Coordenador Acadêmico',
+      date: new Date(sub.reviewed_at || new Date()).toLocaleDateString('pt-BR'),
+      text: sub.feedback
+    } : undefined
+  };
+};
+
 export default function HoursListScreen({ navigation }: Props) {
   const [activeTab, setActiveTab] = useState<'todas' | 'pendentes' | 'aprovadas'>('todas');
   const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [submissions, setSubmissions] = useState<HourSubmission[]>([]);
   const insets = useSafeAreaInsets();
-  
-  // Estado para alternar entre "Tem atividades" e "Primeiro acesso (Vazio)"
-  // Clique no avatar ou no sino para testar a troca
-  const [isFirstAccess, setIsFirstAccess] = useState(false);
 
-  const activities = isFirstAccess ? [] : INITIAL_MOCK_ACTIVITIES;
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+      setLoading(true);
+      hoursService.getAll()
+        .then(({ data }) => {
+          if (isMounted) {
+            setSubmissions(data);
+            setLoading(false);
+          }
+        })
+        .catch(err => {
+          console.error('Erro ao listar atividades:', err);
+          if (isMounted) setLoading(false);
+        });
+      return () => {
+        isMounted = false;
+      };
+    }, [])
+  );
+
+  const activities = submissions.map(mapSubmissionToActivityMock);
 
   const filteredActivities = activities.filter(activity => {
     if (activeTab === 'pendentes' && activity.status !== 'Pendente') return false;
     if (activeTab === 'aprovadas' && activity.status !== 'Aprovado') return false;
-    if (search && !activity.title.toLowerCase().includes(search.toLowerCase())) return false;
+    if (search && !activity.title.toLowerCase().includes(search.toLowerCase()) && !activity.category.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
@@ -147,8 +197,7 @@ export default function HoursListScreen({ navigation }: Props) {
       {/* ── HEADER ── */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <TouchableOpacity onPress={() => setIsFirstAccess(!isFirstAccess)} style={styles.avatarPlaceholder}>
-            {/* O clique no avatar alterna o modo Vazio / Cheio para testes */}
+          <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.avatarPlaceholder}>
             <Ionicons name="person" size={20} color="#9CA3AF" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>SENAC Acadêmico</Text>
@@ -160,10 +209,10 @@ export default function HoursListScreen({ navigation }: Props) {
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={isFirstAccess ? styles.scrollContentEmpty : styles.scrollContent}
+        contentContainerStyle={submissions.length === 0 ? styles.scrollContentEmpty : styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {isFirstAccess ? (
+        {submissions.length === 0 ? (
           renderEmptyState()
         ) : (
           <>
@@ -204,61 +253,74 @@ export default function HoursListScreen({ navigation }: Props) {
             </View>
 
             {/* ── LISTA DE ATIVIDADES ── */}
-            <View style={styles.listContainer}>
-              {filteredActivities.map((activity) => {
-                const statusStyle = getStatusStyle(activity.status);
-                return (
-                  <TouchableOpacity
-                    key={activity.id}
-                    style={styles.activityCard}
-                    activeOpacity={0.7}
-                    onPress={() => navigation.navigate('HourDetail', { activity })}
-                  >
-                    <View style={styles.cardHeader}>
-                      <View style={styles.iconBg}>
-                        <Ionicons name={getIconForActivity(activity.title)} size={24} color="#1B3A6B" />
+            {loading ? (
+              <View style={{ paddingVertical: 40, alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#00478F" />
+                <Text style={{ marginTop: 12, color: '#6B7280' }}>Carregando atividades...</Text>
+              </View>
+            ) : (
+              <View style={styles.listContainer}>
+                {filteredActivities.map((activity) => {
+                  const statusStyle = getStatusStyle(activity.status);
+                  return (
+                    <TouchableOpacity
+                      key={activity.id}
+                      style={styles.activityCard}
+                      activeOpacity={0.7}
+                      onPress={() => navigation.navigate('HourDetail', { activity })}
+                    >
+                      <View style={styles.cardHeader}>
+                        <View style={styles.iconBg}>
+                          <Ionicons name={getIconForActivity(activity.title)} size={24} color="#1B3A6B" />
+                        </View>
+                        <View style={styles.cardInfo}>
+                          <Text style={styles.activityName} numberOfLines={1}>{activity.title}</Text>
+                          <Text style={styles.activityDate}>{activity.date}</Text>
+                        </View>
+                        <View style={[styles.badge, { backgroundColor: statusStyle.bg }]}>
+                          <Text style={[styles.badgeText, { color: statusStyle.text }]}>{activity.status}</Text>
+                        </View>
                       </View>
-                      <View style={styles.cardInfo}>
-                        <Text style={styles.activityName} numberOfLines={1}>{activity.title}</Text>
-                        <Text style={styles.activityDate}>{activity.date}</Text>
-                      </View>
-                      <View style={[styles.badge, { backgroundColor: statusStyle.bg }]}>
-                        <Text style={[styles.badgeText, { color: statusStyle.text }]}>{activity.status}</Text>
-                      </View>
-                    </View>
 
-                    {activity.rejectionReason && (
-                      <View style={styles.rejectionBox}>
-                        <Text style={styles.rejectionText}>{activity.rejectionReason}</Text>
-                      </View>
-                    )}
+                      {activity.rejectionReason && (
+                        <View style={styles.rejectionBox}>
+                          <Text style={styles.rejectionText}>{activity.rejectionReason}</Text>
+                        </View>
+                      )}
 
-                    <View style={styles.cardFooter}>
-                      <View style={styles.hoursRow}>
-                        <Ionicons name="time-outline" size={16} color="#6B7280" style={{ marginRight: 4 }} />
-                        <Text style={styles.hoursText}>{String(activity.hours).padStart(2, '0')} horas</Text>
+                      <View style={styles.cardFooter}>
+                        <View style={styles.hoursRow}>
+                          <Ionicons name="time-outline" size={16} color="#6B7280" style={{ marginRight: 4 }} />
+                          <Text style={styles.hoursText}>{String(activity.hours).padStart(2, '0')} horas</Text>
+                        </View>
+                        <View style={styles.actionRow}>
+                          <Text style={[styles.actionText, activity.status === 'Reprovado' && { color: '#DC2626' }]}>
+                            {activity.status === 'Reprovado' ? 'Corrigir envio' : activity.status === 'Aprovado' ? 'Visualizar recibo' : 'Ver detalhes'}
+                          </Text>
+                          <Ionicons 
+                            name={activity.status === 'Reprovado' ? 'swap-horizontal' : activity.status === 'Aprovado' ? 'open-outline' : 'chevron-forward'} 
+                            size={16} color={activity.status === 'Reprovado' ? '#DC2626' : '#1B3A6B'} style={{ marginLeft: 4 }} 
+                          />
+                        </View>
                       </View>
-                      <View style={styles.actionRow}>
-                        <Text style={[styles.actionText, activity.status === 'Reprovado' && { color: '#DC2626' }]}>
-                          {activity.status === 'Reprovado' ? 'Corrigir envio' : activity.status === 'Aprovado' ? 'Visualizar recibo' : 'Ver detalhes'}
-                        </Text>
-                        <Ionicons 
-                          name={activity.status === 'Reprovado' ? 'swap-horizontal' : activity.status === 'Aprovado' ? 'open-outline' : 'chevron-forward'} 
-                          size={16} color={activity.status === 'Reprovado' ? '#DC2626' : '#1B3A6B'} style={{ marginLeft: 4 }} 
-                        />
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+                    </TouchableOpacity>
+                  );
+                })}
+
+                {filteredActivities.length === 0 && (
+                  <View style={{ paddingVertical: 20, alignItems: 'center' }}>
+                    <Text style={{ color: '#9CA3AF', fontStyle: 'italic' }}>Nenhuma atividade encontrada.</Text>
+                  </View>
+                )}
+              </View>
+            )}
           </>
         )}
         <View style={{ height: 100 }} />
       </ScrollView>
 
       {/* FAB SÓ SE TIVER ATIVIDADES */}
-      {!isFirstAccess && (
+      {(submissions.length > 0) && (
         <TouchableOpacity
           style={[styles.fabButton, { bottom: (insets.bottom > 0 ? insets.bottom : 8) + 64 }]}
           activeOpacity={0.8}

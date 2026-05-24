@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,17 +7,57 @@ import {
   TouchableOpacity,
   StatusBar,
   Platform,
-  Image,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
 import { RootStackParamList } from '../../types';
+import { useAuth } from '../../hooks';
+import { hoursService, MeusDadosResponse } from '../../services/api/hoursService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 
 export default function ProfileScreen({ navigation }: Props) {
+  const { logout } = useAuth();
+  const [meusDados, setMeusDados] = useState<MeusDadosResponse | null>(null);
+  const [loading, setLoading] = useState(true);
   const insets = useSafeAreaInsets();
+
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+      setLoading(true);
+      hoursService.getMeusDados()
+        .then(({ data }) => {
+          if (isMounted) {
+            setMeusDados(data);
+            setLoading(false);
+          }
+        })
+        .catch(err => {
+          console.error('Erro ao buscar perfil:', err);
+          if (isMounted) setLoading(false);
+        });
+      return () => {
+        isMounted = false;
+      };
+    }, [])
+  );
+
+  const handleSair = async () => {
+    try {
+      await logout();
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    } catch (err) {
+      console.error('Erro ao deslogar:', err);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <StatusBar barStyle="dark-content" backgroundColor="#F7F9FC" />
@@ -33,110 +73,116 @@ export default function ProfileScreen({ navigation }: Props) {
         <View style={styles.avatarHeaderPlaceholder} />
       </View>
 
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* ── HEADER DO PERFIL (FOTO, NOME, CPF) ── */}
-        <View style={styles.profileHeader}>
-          <View style={styles.avatarContainer}>
-            {/* O avatar real usaria Image, aqui simulamos com um ícone grande ou view caso não tenha */}
-            <View style={styles.avatarImagePlaceholder}>
-              <Ionicons name="person" size={64} color="#9CA3AF" />
+      {loading ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color="#00478F" />
+          <Text style={{ marginTop: 12, color: '#6B7280' }}>Carregando dados do perfil...</Text>
+        </View>
+      ) : (
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* ── HEADER DO PERFIL (FOTO, NOME, CPF) ── */}
+          <View style={styles.profileHeader}>
+            <View style={styles.avatarContainer}>
+              <View style={styles.avatarImagePlaceholder}>
+                <Ionicons name="person" size={64} color="#9CA3AF" />
+              </View>
+              <TouchableOpacity style={styles.editAvatarBadge} activeOpacity={0.8}>
+                <Ionicons name="pencil" size={14} color="#FFFFFF" />
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity style={styles.editAvatarBadge} activeOpacity={0.8}>
-              <Ionicons name="pencil" size={14} color="#FFFFFF" />
-            </TouchableOpacity>
+
+            <Text style={styles.userName}>{meusDados?.aluno?.nome || 'Estudante'}</Text>
+            
+            <View style={styles.courseRow}>
+              <Ionicons name="school-outline" size={16} color="#6B7280" style={{ marginRight: 6 }} />
+              <Text style={styles.courseName}>{meusDados?.aluno?.curso_nome || 'Curso não cadastrado'}</Text>
+            </View>
+
+            <View style={styles.cpfBadge}>
+              <Text style={styles.cpfText}>{meusDados?.aluno?.email}</Text>
+            </View>
           </View>
 
-          <Text style={styles.userName}>Ricardo Oliveira Silva</Text>
-          
-          <View style={styles.courseRow}>
-            <Ionicons name="school-outline" size={16} color="#6B7280" style={{ marginRight: 6 }} />
-            <Text style={styles.courseName}>Desenvolvimento de Sistemas</Text>
+          {/* ── CARDS DE ESTATÍSTICAS ── */}
+          <View style={styles.statsRow}>
+            <View style={styles.statCard}>
+              <Text style={styles.statLabel}>Submissões</Text>
+              <Text style={[styles.statValue, { color: '#00478F' }]}>{meusDados?.total_submissoes || 0}</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statLabel}>Horas Validadas</Text>
+              <Text style={[styles.statValue, { color: '#F59E0B' }]}>{meusDados?.horas_aprovadas || 0}h</Text>
+            </View>
           </View>
 
-          <View style={styles.cpfBadge}>
-            <Text style={styles.cpfText}>CPF: 123.456.789-00</Text>
+          {/* ── CONFIGURAÇÕES ── */}
+          <View style={styles.configSection}>
+            <Text style={styles.configSectionTitle}>CONFIGURAÇÕES</Text>
+
+            <View style={styles.configCard}>
+              {/* Trocar de Curso */}
+              <TouchableOpacity 
+                style={styles.configItem} 
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate('SelectCourse')}
+              >
+                <View style={styles.configIconBg}>
+                  <Ionicons name="swap-horizontal" size={20} color="#1B3A6B" />
+                </View>
+                <Text style={styles.configItemText}>Trocar de Curso</Text>
+                <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+              </TouchableOpacity>
+
+              <View style={styles.divider} />
+
+              {/* Notificações */}
+              <TouchableOpacity 
+                style={styles.configItem} 
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate('Notifications')}
+              >
+                <View style={styles.configIconBg}>
+                  <Ionicons name="notifications-outline" size={20} color="#1B3A6B" />
+                </View>
+                <Text style={styles.configItemText}>Notificações</Text>
+                <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+              </TouchableOpacity>
+
+              <View style={styles.divider} />
+
+              {/* Ajuda */}
+              <TouchableOpacity style={styles.configItem} activeOpacity={0.7}>
+                <View style={styles.configIconBg}>
+                  <Ionicons name="help-circle-outline" size={20} color="#1B3A6B" />
+                </View>
+                <Text style={styles.configItemText}>Ajuda</Text>
+                <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+              </TouchableOpacity>
+
+              <View style={styles.divider} />
+
+              {/* Sair */}
+              <TouchableOpacity 
+                style={styles.configItem} 
+                activeOpacity={0.7}
+                onPress={handleSair}
+              >
+                <View style={[styles.configIconBg, { backgroundColor: '#FEE2E2' }]}>
+                  <Ionicons name="log-out-outline" size={20} color="#DC2626" />
+                </View>
+                <Text style={[styles.configItemText, { color: '#DC2626' }]}>Sair</Text>
+                <Ionicons name="chevron-forward" size={20} color="#DC2626" />
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
 
-        {/* ── CARDS DE ESTATÍSTICAS ── */}
-        <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Text style={styles.statLabel}>Frequência</Text>
-            <Text style={[styles.statValue, { color: '#00478F' }]}>94%</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statLabel}>Média Geral</Text>
-            <Text style={[styles.statValue, { color: '#F59E0B' }]}>8.5</Text>
-          </View>
-        </View>
-
-        {/* ── CONFIGURAÇÕES ── */}
-        <View style={styles.configSection}>
-          <Text style={styles.configSectionTitle}>CONFIGURAÇÕES</Text>
-
-          <View style={styles.configCard}>
-            {/* Trocar de Curso */}
-            <TouchableOpacity 
-              style={styles.configItem} 
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate('SelectCourse')}
-            >
-              <View style={styles.configIconBg}>
-                <Ionicons name="swap-horizontal" size={20} color="#1B3A6B" />
-              </View>
-              <Text style={styles.configItemText}>Trocar de Curso</Text>
-              <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
-            </TouchableOpacity>
-
-            <View style={styles.divider} />
-
-            {/* Notificações */}
-            <TouchableOpacity 
-              style={styles.configItem} 
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate('Notifications')}
-            >
-              <View style={styles.configIconBg}>
-                <Ionicons name="notifications-outline" size={20} color="#1B3A6B" />
-              </View>
-              <Text style={styles.configItemText}>Notificações</Text>
-              <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
-            </TouchableOpacity>
-
-            <View style={styles.divider} />
-
-            {/* Ajuda */}
-            <TouchableOpacity style={styles.configItem} activeOpacity={0.7}>
-              <View style={styles.configIconBg}>
-                <Ionicons name="help-circle-outline" size={20} color="#1B3A6B" />
-              </View>
-              <Text style={styles.configItemText}>Ajuda</Text>
-              <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
-            </TouchableOpacity>
-
-            <View style={styles.divider} />
-
-            {/* Sair */}
-            <TouchableOpacity 
-              style={styles.configItem} 
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate('Login')}
-            >
-              <View style={[styles.configIconBg, { backgroundColor: '#FEE2E2' }]}>
-                <Ionicons name="log-out-outline" size={20} color="#DC2626" />
-              </View>
-              <Text style={[styles.configItemText, { color: '#DC2626' }]}>Sair</Text>
-              <Ionicons name="chevron-forward" size={20} color="#DC2626" />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={{ height: 100 }} />
-      </ScrollView>
+          <View style={{ height: 100 }} />
+        </ScrollView>
+      )}
 
       {/* ── BOTTOM TAB BAR ── */}
       <View style={[styles.bottomTabBar, { paddingBottom: insets.bottom > 0 ? insets.bottom : 8 }]}>

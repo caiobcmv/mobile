@@ -100,6 +100,26 @@ export const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.5,
   },
+
+  // ─── Botão secundário (Outlined) ──────────────────────────────────────
+  buttonSecondary: {
+    backgroundColor: 'transparent',
+    borderRadius: 14,
+    height: 54,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#1A3D6D',
+    marginTop: 12,
+  },
+
+  // ─── Texto do botão secundário ────────────────────────────────────────
+  buttonSecondaryText: {
+    color: '#1A3D6D',
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
 });
 
 // Exporta dimensões para uso nos componentes de onda

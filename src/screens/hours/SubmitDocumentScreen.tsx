@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,39 +8,162 @@ import {
   StatusBar,
   Platform,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import * as DocumentPicker from 'expo-document-picker';
+import * as ImagePicker from 'expo-image-picker';
 import { RootStackParamList } from '../../types';
+import { hoursService } from '../../services/api/hoursService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SubmitDocument'>;
 
-export default function SubmitDocumentScreen({ navigation }: Props) {
+export default function SubmitDocumentScreen({ navigation, route }: Props) {
+  const params = route.params;
   const [uploadProgress, setUploadProgress] = useState(0);
   const [hasUploaded, setHasUploaded] = useState(false);
   const [isReviewModalVisible, setIsReviewModalVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<{
+    uri: string;
+    name: string;
+    mimeType: string;
+    size?: number;
+  } | null>(null);
   const insets = useSafeAreaInsets();
 
-  // Simula o upload de arquivo preenchendo a barra de progresso de 0 a 100%
-  const startUpload = () => {
-    setUploadProgress(0);
-    setHasUploaded(false);
+  const formatFileSize = (bytes?: number) => {
+    if (!bytes) return 'Tamanho desconhecido';
+    const mb = bytes / (1024 * 1024);
+    if (mb >= 0.1) {
+      return `${mb.toFixed(1)} MB`;
+    }
+    const kb = bytes / 1024;
+    return `${Math.round(kb)} KB`;
+  };
 
+  const getFileTypeText = (mimeType: string, name: string) => {
+    if (mimeType.includes('pdf') || name.toLowerCase().endsWith('.pdf')) return 'Documento PDF';
+    if (mimeType.includes('image')) return 'Imagem';
+    return 'Documento';
+  };
+
+  const startProgressSimulation = () => {
+    setUploadProgress(0);
     let progress = 0;
     const interval = setInterval(() => {
-      progress += 10;
+      progress += 20;
       setUploadProgress(progress);
       if (progress >= 100) {
         clearInterval(interval);
-        setHasUploaded(true);
       }
-    }, 150); // 1.5s total para o "loading"
+    }, 50);
+  };
+
+  const handleLaunchCamera = async () => {
+    setError(null);
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        setError('Permissão para acessar a câmera é necessária.');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        const uri = asset.uri;
+        const name = asset.fileName || `camera_photo_${Date.now()}.jpg`;
+        const mimeType = asset.mimeType || 'image/jpeg';
+        const size = asset.fileSize;
+
+        setSelectedFile({ uri, name, mimeType, size });
+        setHasUploaded(true);
+        startProgressSimulation();
+      }
+    } catch (err: any) {
+      console.error('Erro ao acessar a câmera:', err);
+      setError('Não foi possível abrir a câmera.');
+    }
+  };
+
+  const handlePickDocument = async () => {
+    setError(null);
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['application/pdf', 'image/*'],
+        copyToCacheDirectory: true,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        const uri = asset.uri;
+        const name = asset.name;
+        const mimeType = asset.mimeType || 'application/octet-stream';
+        const size = asset.size;
+
+        setSelectedFile({ uri, name, mimeType, size });
+        setHasUploaded(true);
+        startProgressSimulation();
+      }
+    } catch (err: any) {
+      console.error('Erro ao selecionar documento:', err);
+      setError('Não foi possível selecionar o documento.');
+    }
   };
 
   const handleDeleteFile = () => {
     setUploadProgress(0);
     setHasUploaded(false);
+    setSelectedFile(null);
+  };
+
+  const handleConfirmAndSend = async () => {
+    if (!selectedFile) {
+      setError('Selecione um arquivo antes de enviar.');
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const payload = {
+        course_id: params.course_id,
+        category_id: params.category_id,
+        title: params.title,
+        description: params.description,
+        requested_hours: params.requested_hours,
+        activity_date: new Date().toISOString().split('T')[0],
+        institution_name: 'SENAC',
+        certificate_number: 'CERT-' + Math.floor(Math.random() * 100000),
+        organizer_name: 'SENAC',
+      };
+      
+      const response = await hoursService.create(payload);
+      const submissionId = response.data.submissao.id;
+
+      await hoursService.uploadFile(
+        String(submissionId),
+        selectedFile.uri,
+        selectedFile.name,
+        selectedFile.mimeType
+      );
+
+      setIsReviewModalVisible(false);
+      navigation.navigate('SubmitSuccess');
+    } catch (err: any) {
+      console.error('Erro ao enviar atividade:', err);
+      const msg = err.response?.data?.erro || err.message || 'Erro ao submeter atividade. Tente novamente.';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -68,6 +191,8 @@ export default function SubmitDocumentScreen({ navigation }: Props) {
           Siga as instruções para validar sua atividade acadêmica.
         </Text>
 
+        {error && <Text style={{ color: '#EF4444', marginBottom: 16, fontWeight: '600' }}>{error}</Text>}
+
         {/* ── INFO ALERT ── */}
         <View style={styles.infoAlert}>
           <Ionicons name="information-circle-outline" size={22} color="#B45309" style={styles.infoIcon} />
@@ -78,23 +203,23 @@ export default function SubmitDocumentScreen({ navigation }: Props) {
 
         {/* ── BOTÕES DE UPLOAD ── */}
         <View style={styles.uploadButtonsRow}>
-          <TouchableOpacity style={styles.uploadButton} activeOpacity={0.7} onPress={startUpload}>
+          <TouchableOpacity style={styles.uploadButton} activeOpacity={0.7} onPress={handleLaunchCamera}>
             <View style={styles.uploadIconBg}>
               <Ionicons name="camera-outline" size={24} color="#1B3A6B" />
             </View>
             <Text style={styles.uploadButtonText}>Câmera</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.uploadButton} activeOpacity={0.7} onPress={startUpload}>
+          <TouchableOpacity style={styles.uploadButton} activeOpacity={0.7} onPress={handlePickDocument}>
             <View style={styles.uploadIconBg}>
-              <Ionicons name="image-outline" size={24} color="#1B3A6B" />
+              <Ionicons name="document-text-outline" size={24} color="#1B3A6B" />
             </View>
-            <Text style={styles.uploadButtonText}>Galeria</Text>
+            <Text style={styles.uploadButtonText}>Galeria / PDF</Text>
           </TouchableOpacity>
         </View>
 
         {/* ── ARQUIVO ANEXADO (SÓ APARECE QUANDO O UPLOAD INICIA) ── */}
-        {uploadProgress > 0 && (
+        {uploadProgress > 0 && selectedFile && (
           <View style={styles.fileCard}>
             <View style={styles.fileCardLeftLine} />
             
@@ -102,9 +227,11 @@ export default function SubmitDocumentScreen({ navigation }: Props) {
               <View style={styles.fileInfoRow}>
                 <View style={{ flex: 1, paddingRight: 12 }}>
                   <Text style={styles.fileName} numberOfLines={1}>
-                    comprovante_atividades_2026.pdf
+                    {selectedFile.name}
                   </Text>
-                  <Text style={styles.fileDetail}>2.4 MB • PDF Document</Text>
+                  <Text style={styles.fileDetail}>
+                    {formatFileSize(selectedFile.size)} • {getFileTypeText(selectedFile.mimeType, selectedFile.name)}
+                  </Text>
                 </View>
                 {hasUploaded && (
                   <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteFile}>
@@ -167,11 +294,11 @@ export default function SubmitDocumentScreen({ navigation }: Props) {
               <View style={styles.modalRowCards}>
                 <View style={styles.modalMiniCard}>
                   <Text style={styles.modalMiniCardLabel}>Categoria</Text>
-                  <Text style={styles.modalMiniCardValue}>Extensão Acadêmica</Text>
+                  <Text style={styles.modalMiniCardValue}>{params?.category_name}</Text>
                 </View>
                 <View style={styles.modalMiniCard}>
                   <Text style={styles.modalMiniCardLabel}>Carga Horária</Text>
-                  <Text style={styles.modalMiniCardValue}>12 Horas</Text>
+                  <Text style={styles.modalMiniCardValue}>{params?.requested_hours} Horas</Text>
                 </View>
               </View>
 
@@ -179,19 +306,25 @@ export default function SubmitDocumentScreen({ navigation }: Props) {
               <View style={styles.modalBigCard}>
                 <Text style={styles.modalMiniCardLabel}>Descrição</Text>
                 <Text style={styles.modalDescriptionText}>
-                  "Participação no Workshop de UI/UX Design Moderno realizado na Unidade Senac Centro..."
+                  "{params?.description}"
                 </Text>
               </View>
 
               {/* Arquivo */}
               <View style={[styles.modalBigCard, { flexDirection: 'row', alignItems: 'center' }]}>
-                {/* Mock da thumbnail da imagem */}
+                {/* Thumbnail baseada no tipo */}
                 <View style={styles.thumbnailPlaceholder}>
-                  <Ionicons name="image" size={24} color="#00478F" />
+                  <Ionicons 
+                    name={selectedFile?.mimeType?.includes('pdf') ? "document-text" : "image"} 
+                    size={24} 
+                    color="#00478F" 
+                  />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.modalMiniCardLabel}>Arquivo Anexado</Text>
-                  <Text style={styles.modalMiniCardValue}>certificado_workshop_uiux.pdf</Text>
+                  <Text style={styles.modalMiniCardValue} numberOfLines={1}>
+                    {selectedFile?.name}
+                  </Text>
                 </View>
                 <Ionicons name="checkmark-circle-outline" size={24} color="#B45309" />
               </View>
@@ -208,20 +341,24 @@ export default function SubmitDocumentScreen({ navigation }: Props) {
               <TouchableOpacity 
                 style={styles.modalConfirmButton} 
                 activeOpacity={0.85}
-                onPress={() => {
-                  setIsReviewModalVisible(false);
-                  navigation.navigate('SubmitSuccess');
-                }}
+                disabled={loading}
+                onPress={handleConfirmAndSend}
               >
-                <Text style={styles.modalConfirmText}>Confirmar e Enviar</Text>
-                <Ionicons name="send" size={16} color="#FFFFFF" style={{ marginLeft: 8 }} />
+                {loading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <>
+                    <Text style={styles.modalConfirmText}>Confirmar e Enviar</Text>
+                    <Ionicons name="send" size={16} color="#FFFFFF" style={{ marginLeft: 8 }} />
+                  </>
+                )}
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.modalEditButton} onPress={() => setIsReviewModalVisible(false)}>
+              <TouchableOpacity style={styles.modalEditButton} disabled={loading} onPress={() => setIsReviewModalVisible(false)}>
                 <Text style={styles.modalEditText}>Editar Dados</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.modalBackButton} onPress={() => setIsReviewModalVisible(false)}>
+              <TouchableOpacity style={styles.modalBackButton} disabled={loading} onPress={() => setIsReviewModalVisible(false)}>
                 <Text style={styles.modalBackText}>Voltar</Text>
               </TouchableOpacity>
               

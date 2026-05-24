@@ -35,7 +35,6 @@ export function useAuth() {
   }, []);
 
   const logout = useCallback(async () => {
-    await authService.logout();
     await AsyncStorage.multiRemove([STORAGE_KEYS.TOKEN, STORAGE_KEYS.USER]);
     setToken(null);
     setUser(null);

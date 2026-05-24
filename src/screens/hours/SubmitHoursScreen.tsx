@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,18 +9,55 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Modal,
+  FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types';
+import { hoursService } from '../../services/api/hoursService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SubmitHours'>;
 
 export default function SubmitHoursScreen({ navigation }: Props) {
+  const [titulo, setTitulo] = useState('');
   const [categoria, setCategoria] = useState('');
+  const [categoriaId, setCategoriaId] = useState<number | null>(null);
   const [horas, setHoras] = useState('');
   const [descricao, setDescricao] = useState('');
+
+  const [categories, setCategories] = useState<Array<{ id: number; name: string }>>([]);
+  const [courseId, setCourseId] = useState<number | null>(null);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    hoursService.getResumoHoras()
+      .then(({ data }) => {
+        setCourseId(data.course_id);
+        if (data.limites) {
+          setCategories(data.limites.map(l => ({ id: l.category_id, name: l.categoria })));
+        }
+      })
+      .catch(err => console.error('Erro ao carregar categorias:', err));
+  }, []);
+
+  const handleContinue = () => {
+    if (!titulo || !categoriaId || !horas || !descricao || !courseId) {
+      setError('Por favor, preencha todos os campos obrigatórios.');
+      return;
+    }
+    setError(null);
+    navigation.navigate('SubmitDocument', {
+      course_id: courseId,
+      category_id: categoriaId,
+      title: titulo,
+      description: descricao,
+      requested_hours: parseFloat(horas),
+      category_name: categoria,
+    });
+  };
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -58,13 +95,33 @@ export default function SubmitHoursScreen({ navigation }: Props) {
             </View>
           </View>
 
+          {error && <Text style={{ color: '#EF4444', marginBottom: 12, fontWeight: '600' }}>{error}</Text>}
+
           {/* ── FORMULÁRIO ── */}
           <View style={styles.formCard}>
             
+            {/* Título */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Título da Atividade *</Text>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Ex: Curso de Metodologias Ágeis"
+                  placeholderTextColor="#9CA3AF"
+                  value={titulo}
+                  onChangeText={setTitulo}
+                />
+              </View>
+            </View>
+
             {/* Categoria */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Categoria</Text>
-              <TouchableOpacity style={styles.dropdownInput} activeOpacity={0.8}>
+              <Text style={styles.label}>Categoria *</Text>
+              <TouchableOpacity 
+                style={styles.dropdownInput} 
+                activeOpacity={0.8}
+                onPress={() => setShowCategoryModal(true)}
+              >
                 <Text style={categoria ? styles.inputText : styles.placeholderText}>
                   {categoria || 'Selecione uma categoria'}
                 </Text>
@@ -74,7 +131,7 @@ export default function SubmitHoursScreen({ navigation }: Props) {
 
             {/* Carga Horária */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Carga Horária (horas)</Text>
+              <Text style={styles.label}>Carga Horária (horas) *</Text>
               <View style={styles.inputWrapper}>
                 <TextInput
                   style={styles.textInput}
@@ -90,7 +147,7 @@ export default function SubmitHoursScreen({ navigation }: Props) {
 
             {/* Descrição */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Descrição</Text>
+              <Text style={styles.label}>Descrição *</Text>
               <View style={[styles.inputWrapper, styles.textAreaWrapper]}>
                 <TextInput
                   style={styles.textArea}
@@ -117,12 +174,49 @@ export default function SubmitHoursScreen({ navigation }: Props) {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* ── FOOTER / BOTÃO CONTINUAR ── */}
+      {/* ── MODAL DE CATEGORIAS ── */}
+      <Modal
+        visible={showCategoryModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowCategoryModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHandleBar} />
+            <Text style={styles.modalTitle}>Selecione a Categoria</Text>
+            <FlatList
+              data={categories}
+              keyExtractor={(item) => String(item.id)}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.modalItem}
+                  onPress={() => {
+                    setCategoria(item.name);
+                    setCategoriaId(item.id);
+                    setShowCategoryModal(false);
+                  }}
+                >
+                  <Text style={styles.modalItemText}>{item.name}</Text>
+                </TouchableOpacity>
+              )}
+              style={{ marginBottom: 20 }}
+            />
+            <TouchableOpacity 
+              style={styles.modalCancelButton}
+              onPress={() => setShowCategoryModal(false)}
+            >
+              <Text style={styles.modalCancelButtonText}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <View style={styles.footer}>
         <TouchableOpacity 
           style={styles.continueButton} 
           activeOpacity={0.85}
-          onPress={() => navigation.navigate('SubmitDocument')}
+          onPress={handleContinue}
         >
           <Text style={styles.continueButtonText}>Continuar para Comprovante</Text>
           <Ionicons name="arrow-forward" size={20} color="#FFFFFF" style={{ marginLeft: 8 }} />
@@ -325,5 +419,55 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 24,
+    maxHeight: '60%',
+  },
+  modalHandleBar: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#D1D5DB',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1B3A6B',
+    marginBottom: 16,
+  },
+  modalItem: {
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  modalItemText: {
+    fontSize: 15,
+    color: '#111827',
+  },
+  modalCancelButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 48,
+    borderRadius: 10,
+    backgroundColor: '#F3F4F6',
+    marginTop: 8,
+  },
+  modalCancelButtonText: {
+    color: '#4B5563',
+    fontWeight: '600',
+    fontSize: 15,
   },
 });

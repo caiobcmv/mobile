@@ -69,8 +69,12 @@ export default function WelcomeScreen({ navigation }: Props) {
   // Ao clicar "Começar Jornada":
   //   → Se for o primeiro acesso: vai para FirstAccess (criar/alterar senha)
   //   → Futuramente: verificar AsyncStorage para saber se já passou pelo FirstAccess
-  const handleStart = () => {
+  const handleFirstAccess = () => {
     navigation.navigate('FirstAccess');
+  };
+
+  const handleLogin = () => {
+    navigation.navigate('Login');
   };
 
   // ── Renderização ──────────────────────────────────────────────────────
@@ -111,18 +115,28 @@ export default function WelcomeScreen({ navigation }: Props) {
       </Animated.View>
 
       {/* ────────────────────────────────────────────────────────────────
-          CAMADA 1 — Rodapé com o botão
+          CAMADA 1 — Rodapé com os botões
           Também renderizado depois das ondas, sempre visível na frente.
       ──────────────────────────────────────────────────────────────── */}
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.button}
-          onPress={handleStart}
+          onPress={handleFirstAccess}
           activeOpacity={0.85}
           accessibilityRole="button"
-          accessibilityLabel="Começar Jornada"
+          accessibilityLabel="Primeiro Acesso"
         >
-          <Text style={styles.buttonText}>Começar Jornada</Text>
+          <Text style={styles.buttonText}>Primeiro Acesso</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.buttonSecondary}
+          onPress={handleLogin}
+          activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel="Já tenho uma conta"
+        >
+          <Text style={styles.buttonSecondaryText}>Já tenho uma conta</Text>
         </TouchableOpacity>
       </View>
 

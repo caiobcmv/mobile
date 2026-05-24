@@ -14,8 +14,7 @@ export interface AuthState {
   isAuthenticated: boolean;
 }
 
-// ─── Hours / Submissions ──────────────────────────────────────────────────────
-export type SubmissionStatus = 'pendente' | 'aprovado' | 'rejeitado';
+export type SubmissionStatus = 'submitted' | 'approved' | 'rejected' | 'returned_for_adjustment' | 'pendente' | 'aprovado' | 'rejeitado';
 
 export interface HourSubmission {
   id: string;
@@ -30,6 +29,14 @@ export interface HourSubmission {
   reviewedBy?: string;
   reviewedAt?: string;
   feedback?: string;
+  submitted_at?: string;
+  created_at?: string;
+  approved_hours?: number;
+  requested_hours?: number;
+  category_name?: string;
+  original_filename?: string;
+  file_size_kb?: number;
+  mime_type?: string;
 }
 
 export interface ActivityMock {
@@ -83,7 +90,14 @@ export type RootStackParamList = {
   // App stack
   Dashboard: undefined;
   SubmitHours: undefined;
-  SubmitDocument: undefined;
+  SubmitDocument: {
+    course_id: number;
+    category_id: number;
+    title: string;
+    description: string;
+    requested_hours: number;
+    category_name: string;
+  };
   SubmitSuccess: undefined;
   HoursList: undefined;
   Notifications: undefined;
