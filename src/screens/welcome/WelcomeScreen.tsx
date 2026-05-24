@@ -28,9 +28,9 @@ import {
   View,         // container básico (como <div>)
   Text,         // texto
   TouchableOpacity,  // botão com feedback de toque
-  SafeAreaView, // respeita o notch e a barra de status
   Animated,     // para animações de entrada
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 // ─── Imports internos ───────────────────────────────────────────────────
@@ -76,7 +76,7 @@ export default function WelcomeScreen({ navigation }: Props) {
   // ── Renderização ──────────────────────────────────────────────────────
   return (
     // SafeAreaView garante que o conteúdo não fica atrás do notch/status bar
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
 
       {/* ────────────────────────────────────────────────────────────────
           CAMADA 0 — Ondas decorativas (renderizadas PRIMEIRO = atrás)

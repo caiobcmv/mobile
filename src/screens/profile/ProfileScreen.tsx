@@ -3,13 +3,13 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   StatusBar,
   Platform,
   Image,
 } from 'react-native';
+import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types';
@@ -17,8 +17,9 @@ import { RootStackParamList } from '../../types';
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 
 export default function ProfileScreen({ navigation }: Props) {
+  const insets = useSafeAreaInsets();
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <StatusBar barStyle="dark-content" backgroundColor="#F7F9FC" />
 
       {/* ── HEADER ── */}
@@ -138,7 +139,7 @@ export default function ProfileScreen({ navigation }: Props) {
       </ScrollView>
 
       {/* ── BOTTOM TAB BAR ── */}
-      <View style={styles.bottomTabBar}>
+      <View style={[styles.bottomTabBar, { paddingBottom: insets.bottom > 0 ? insets.bottom : 8 }]}>
         <TouchableOpacity style={styles.bottomTabItem} onPress={() => navigation.navigate('Dashboard')}>
           <Ionicons name="grid-outline" size={24} color="#9CA3AF" />
           <Text style={styles.bottomTabLabel}>Dashboard</Text>
@@ -361,19 +362,17 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: Platform.OS === 'ios' ? 84 : 64,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 0,
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#F3F4F6',
-    // Removido alignItems: 'center' para que flex: 1 e height: 100% ocupem toda a área de clique
+    paddingTop: 8,
   },
   bottomTabItem: {
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
-    height: '100%',
+    paddingBottom: 4,
   },
   activeTabPill: {
     backgroundColor: '#F0F6FF',

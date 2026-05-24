@@ -3,12 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   StatusBar,
   Platform,
 } from 'react-native';
+import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types';
@@ -16,8 +16,9 @@ import { RootStackParamList } from '../../types';
 type Props = NativeStackScreenProps<RootStackParamList, 'Dashboard'>;
 
 export default function DashboardScreen({ navigation }: Props) {
+  const insets = useSafeAreaInsets();
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <StatusBar barStyle="dark-content" backgroundColor="#F7F9FC" />
 
       {/* ── HEADER ── */}
@@ -138,7 +139,7 @@ export default function DashboardScreen({ navigation }: Props) {
       </ScrollView>
 
       {/* ── BOTTOM TAB BAR (Estática/Mock) ── */}
-      <View style={styles.bottomTabBar}>
+      <View style={[styles.bottomTabBar, { paddingBottom: insets.bottom > 0 ? insets.bottom : 8 }]}>
         <TouchableOpacity style={styles.tabItem}>
           <Ionicons name="grid" size={24} color="#1B3A6B" />
           <Text style={[styles.tabLabel, { color: '#1B3A6B', fontWeight: '600' }]}>Dashboard</Text>
@@ -452,19 +453,17 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: Platform.OS === 'ios' ? 84 : 64,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 0,
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#F3F4F6',
-    // Removido alignItems: 'center' para que flex: 1 e height: 100% ocupem toda a área de clique
+    paddingTop: 8,
   },
   tabItem: {
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
-    height: '100%',
+    paddingBottom: 4,
   },
   tabLabel: {
     fontSize: 10,

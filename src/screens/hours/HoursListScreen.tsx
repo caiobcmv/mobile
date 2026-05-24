@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   StatusBar,
@@ -11,6 +10,7 @@ import {
   TextInput,
   Image,
 } from 'react-native';
+import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList, ActivityMock } from '../../types';
@@ -56,6 +56,7 @@ const INITIAL_MOCK_ACTIVITIES: ActivityMock[] = [
 export default function HoursListScreen({ navigation }: Props) {
   const [activeTab, setActiveTab] = useState<'todas' | 'pendentes' | 'aprovadas'>('todas');
   const [search, setSearch] = useState('');
+  const insets = useSafeAreaInsets();
   
   // Estado para alternar entre "Tem atividades" e "Primeiro acesso (Vazio)"
   // Clique no avatar ou no sino para testar a troca
@@ -140,7 +141,7 @@ export default function HoursListScreen({ navigation }: Props) {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <StatusBar barStyle="dark-content" backgroundColor="#F7F9FC" />
 
       {/* ── HEADER ── */}
@@ -259,7 +260,7 @@ export default function HoursListScreen({ navigation }: Props) {
       {/* FAB SÓ SE TIVER ATIVIDADES */}
       {!isFirstAccess && (
         <TouchableOpacity
-          style={styles.fabButton}
+          style={[styles.fabButton, { bottom: (insets.bottom > 0 ? insets.bottom : 8) + 64 }]}
           activeOpacity={0.8}
           onPress={() => navigation.navigate('SubmitHours')}
         >
@@ -269,7 +270,7 @@ export default function HoursListScreen({ navigation }: Props) {
       )}
 
       {/* ── BOTTOM TAB BAR ── */}
-      <View style={styles.bottomTabBar}>
+      <View style={[styles.bottomTabBar, { paddingBottom: insets.bottom > 0 ? insets.bottom : 8 }]}>
         <TouchableOpacity style={styles.bottomTabItem} onPress={() => navigation.navigate('Dashboard')}>
           <Ionicons name="grid-outline" size={24} color="#9CA3AF" />
           <Text style={styles.bottomTabLabel}>Dashboard</Text>
@@ -625,9 +626,9 @@ const styles = StyleSheet.create({
   // ── BOTÃO FLUTUANTE (FAB) ──
   fabButton: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 104 : 84, // Fica logo acima da bottom tab
+    bottom: 84, // valor base, será sobrescrito inline com insets
     right: 20,
-    backgroundColor: '#00478F', // Azul escuro
+    backgroundColor: '#00478F',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -652,19 +653,17 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: Platform.OS === 'ios' ? 84 : 64,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 0,
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#F3F4F6',
-    // Removido alignItems: 'center' para que flex: 1 e height: 100% ocupem toda a área de clique
+    paddingTop: 8,
   },
   bottomTabItem: {
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
-    height: '100%',
+    paddingBottom: 4,
   },
   activeTabPill: {
     backgroundColor: '#F0F6FF', // Fundo azuzinho claro em formato de pílula

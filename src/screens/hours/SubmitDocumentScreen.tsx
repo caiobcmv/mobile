@@ -3,13 +3,13 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   StatusBar,
   Platform,
   Modal,
 } from 'react-native';
+import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types';
@@ -20,6 +20,7 @@ export default function SubmitDocumentScreen({ navigation }: Props) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [hasUploaded, setHasUploaded] = useState(false);
   const [isReviewModalVisible, setIsReviewModalVisible] = useState(false);
+  const insets = useSafeAreaInsets();
 
   // Simula o upload de arquivo preenchendo a barra de progresso de 0 a 100%
   const startUpload = () => {
@@ -43,7 +44,7 @@ export default function SubmitDocumentScreen({ navigation }: Props) {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <StatusBar barStyle="dark-content" backgroundColor="#F7F9FC" />
 
       {/* ── HEADER ── */}
@@ -231,7 +232,7 @@ export default function SubmitDocumentScreen({ navigation }: Props) {
       </Modal>
 
       {/* ── BOTTOM TAB BAR (Mockup) ── */}
-      <View style={styles.bottomTabBar}>
+      <View style={[styles.bottomTabBar, { paddingBottom: insets.bottom > 0 ? insets.bottom : 8 }]}>
         <TouchableOpacity style={styles.bottomTabItem} onPress={() => navigation.navigate('Dashboard')}>
           <Ionicons name="grid-outline" size={24} color="#9CA3AF" />
           <Text style={styles.bottomTabLabel}>Dashboard</Text>
@@ -598,20 +599,19 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: Platform.OS === 'ios' ? 84 : 64,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 0,
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#F3F4F6',
     justifyContent: 'space-around',
     alignItems: 'center',
+    paddingTop: 8,
   },
   bottomTabItem: {
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
-    height: '100%',
+    paddingBottom: 4,
   },
   bottomTabLabel: {
     fontSize: 10,

@@ -3,12 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   StatusBar,
   Platform,
 } from 'react-native';
+import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types';
@@ -18,6 +18,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'HourDetail'>;
 export default function HourDetailScreen({ navigation, route }: Props) {
   // Recebe o objeto activity enviado pela tela anterior
   const { activity } = route.params;
+  const insets = useSafeAreaInsets();
 
   const getStatusColor = (status: string) => {
     if (status === 'Aprovada') return { bg: '#D1FAE5', text: '#059669', icon: 'checkmark-circle' };
@@ -28,7 +29,7 @@ export default function HourDetailScreen({ navigation, route }: Props) {
   const statusStyle = getStatusColor(activity.status);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <StatusBar barStyle="dark-content" backgroundColor="#F7F9FC" />
 
       {/* ── HEADER ── */}
@@ -134,7 +135,7 @@ export default function HourDetailScreen({ navigation, route }: Props) {
       </ScrollView>
 
       {/* ── BOTTOM TAB BAR (Mockup) ── */}
-      <View style={styles.bottomTabBar}>
+      <View style={[styles.bottomTabBar, { paddingBottom: insets.bottom > 0 ? insets.bottom : 8 }]}>
         <TouchableOpacity style={styles.bottomTabItem} onPress={() => navigation.navigate('Dashboard')}>
           <Ionicons name="grid-outline" size={24} color="#9CA3AF" />
           <Text style={styles.bottomTabLabel}>Dashboard</Text>
@@ -388,20 +389,19 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: Platform.OS === 'ios' ? 84 : 64,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 0,
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#F3F4F6',
     justifyContent: 'space-around',
     alignItems: 'center',
+    paddingTop: 8,
   },
   bottomTabItem: {
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
-    height: '100%',
+    paddingBottom: 4,
   },
   bottomTabLabel: {
     fontSize: 10,
