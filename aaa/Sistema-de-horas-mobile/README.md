@@ -145,6 +145,40 @@ npm run ios
 
 ---
 
+## 🌐 Hospedando o App na Web (Expo Web)
+
+Este aplicativo mobile está configurado para rodar também diretamente no navegador de computadores e celulares como um Web App.
+
+### Dependências Web
+Foram adicionadas as seguintes dependências no projeto para habilitar o suporte web:
+*   `react-native-web` (mapeia primitivos React Native para tags HTML)
+*   `react-dom` (renderizador DOM para React)
+
+### Rodando o App no Navegador Localmente
+Para abrir a versão web do aplicativo localmente na sua máquina:
+```bash
+npx expo start --web
+# ou: npm run web
+```
+
+### Compilando a Versão Web (Build)
+Para gerar o código de produção otimizado e estático (HTML/JS/CSS):
+```bash
+npx expo export --platform web
+```
+Os arquivos gerados serão salvos na pasta **`dist/`**.
+
+### Deploy Grátis na Vercel (Hospedagem)
+Você pode hospedar essa pasta `dist/` automaticamente na Vercel a cada push no GitHub:
+1. Crie um projeto na **[Vercel](https://vercel.com/)** e importe seu repositório.
+2. Configure as seguintes opções de deploy:
+   *   **Root Directory (Diretório Raiz):** `aaa/Sistema-de-horas-mobile`
+   *   **Build Command (Comando de Build):** `npx expo export --platform web`
+   *   **Output Directory (Diretório de Saída):** `dist`
+3. Clique em **Deploy** e o Vercel publicará seu aplicativo móvel na web de forma automática!
+
+---
+
 ## 🗂️ Arquitetura de Pastas
 
 ```
