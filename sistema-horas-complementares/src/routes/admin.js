@@ -13,5 +13,10 @@ router.get('/coordenadores', authMiddleware(['super_admin']), adminController.ge
 router.post('/coordenador', authMiddleware(['super_admin']), adminController.postCadastrarCoordenador);
 router.put('/coordenador/:id', authMiddleware(['super_admin']), adminController.putAtualizarCoordenador);
 router.delete('/coordenador/:id', authMiddleware(['super_admin']), adminController.deleteCoordenador);
+router.get('/submissoes', authMiddleware(['super_admin']), adminController.getListaSubmissoes);
+router.get('/alunos', authMiddleware(['super_admin']), adminController.getListaAlunos);
+router.get('/logs', authMiddleware(['super_admin']), adminController.getLogs);
+router.get('/limites-cursos', authMiddleware(['super_admin']), adminController.getLimitesCursos);
+
 
 module.exports = router;

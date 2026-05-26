@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Senac - Gestão de Cursos</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
         rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="/styles/sidebar.css">
@@ -30,16 +31,24 @@
             </div>
 
             <nav class="menu-navegacao">
-                <a href="cursosuperadm.html" class="link-menu active"><i class='bx bx-book'></i> Cursos</a>
+                <a href="cursosuperadm.html" class="link-menu"><i class='bx bx-book'></i> Cursos</a>
                 <a href="coordenadores.html" class="link-menu"><i class='bx bx-user-voice'></i> Coordenadores</a>
                 <a href="submissoes_superadmin.html" class="link-menu"><i class='bx bx-check-square'></i> Submissões</a>
-                <a href="configadm.html" class="link-menu"><i class='bx bx-cog'></i> Configurações</a>
             </nav>
 
-            <div style="margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-                <a href="configadm.html" class="link-menu"><i class='bx bx-cog'></i> Configurações</a>
-                <a href="#" class="link-menu link-sair" onclick="if(typeof logout === 'function') logout();"><i
-                        class='bx bx-log-out'></i> Sair</a>
+            <div class="sidebar-bottom-action">
+                <div class="perfil-sidebar">
+                    <img id="sidebar-avatar-global"
+                        src="https://ui-avatars.com/api/?name=S+A&background=0056b3&color=fff" alt="Avatar">
+                    <div class="perfil-sidebar-info">
+                        <strong id="sidebar-nome-global">Super Admin</strong>
+                        <small id="sidebar-role-global">SUPER ADMIN</small>
+                    </div>
+                </div>
+                <a href="#" class="link-menu link-sair"
+                    onclick="if(typeof logout==='function') logout(); else window.location.href='index.html';">
+                    <i class='bx bx-log-out'></i> Sair
+                </a>
             </div>
         </aside>
 
@@ -47,31 +56,13 @@
         <main class="conteudo-principal">
 
             <!-- Top Header -->
-            <header class="top-header">
-                <div class="top-header-left" style="gap: 40px;">
-                    <nav class="top-nav-links" style="display: flex; gap: 30px; height: 100%; align-items: center;">
-                        <a href="cursosuperadm.html"
-                            style="text-decoration: none; color: var(--azul-senac); font-weight: 600; font-size: 14px; border-bottom: 2px solid var(--laranja-senac); padding: 25px 0;">Gestão</a>
-                        <a href="cursoadm.html"
-                            style="text-decoration: none; color: var(--texto-light); font-weight: 600; font-size: 14px; padding: 25px 0;">Análise</a>
-                    </nav>
-                    <div class="search-wrap">
-                        <i class='bx bx-search'></i>
-                        <input type="text" placeholder="Buscar por curso ou ID...">
-                    </div>
+            <header class="cabecalho-topo">
+                <div>
+                    <span class="titulo-portal">Portal do Super Administrador</span>
                 </div>
-
-                <div class="header-right">
-                    <i class='bx bx-bell icon-header'></i>
-                    <i class='bx bx-help-circle icon-header'></i>
-                    <div class="user-profile">
-                        <div class="user-info">
-                            <strong>Admin Senac</strong>
-                            <small>SUPER ADMIN</small>
-                        </div>
-                        <img src="https://ui-avatars.com/api/?name=A+S&background=f6821f&color=fff" alt="User">
-                    </div>
-                </div>
+                <button class="btn-back" onclick="window.history.back()" style="margin-left: auto; padding: 8px 16px; font-size: 12px; background: white; border: 1px solid #cbd5e1 !important;">
+                    <i class='bx bx-arrow-back'></i> VOLTAR
+                </button>
             </header>
 
             <div class="page-container">
@@ -79,10 +70,11 @@
                 <!-- Title & Action -->
                 <div class="header-action-row">
                     <div class="page-title">
-                        <div class="breadcrumb">GESTÃO ACADEMICA</div>
-                        <h1>3a. Gestão de Cursos <span>(Super Adm)</span></h1>
+                        <div class="breadcrumb">PORTAL<i class='bx bx-chevron-right'></i> <span>cursos</span></div>
+                        <h1>Gestão de Cursos <span>(Super Adm)</span></h1>
+                        <p>Administração global de cursos, matrizes curriculares e carga horária acadêmica.</p>
                     </div>
-                    <button class="btn-primary">
+                    <button class="btn-primary" onclick="window.location.href='criar_curso.html'">
                         <i class='bx bx-plus-circle'></i> Criar Novo Curso
                     </button>
                 </div>
@@ -90,28 +82,28 @@
                 <!-- KPIs -->
                 <div class="kpis-grid">
                     <div class="kpi-card">
-                        <div class="kpi-badge" id="kpi-badge-mes">+0 ESTE MÊS</div>
-                        <div class="kpi-icon kpi-icon-blue"><i class='bx bx-book-bookmark'></i></div>
+                        <div class="kpi-badge" id="kpi-badge-mes">+4 ESTE MÊS</div>
+                        <div class="kpi-icon kpi-icon-blue"><i class='bx bx-book'></i></div>
                         <div class="kpi-title">Total de Cursos</div>
-                        <div class="kpi-value" id="kpi-total-cursos">—</div>
+                        <div class="kpi-value" id="kpi-total-cursos">124</div>
                     </div>
 
                     <div class="kpi-card">
                         <div class="kpi-icon kpi-icon-orange"><i class='bx bx-user-voice'></i></div>
                         <div class="kpi-title">Coordenadores Ativos</div>
-                        <div class="kpi-value" id="kpi-coord-ativos">—</div>
+                        <div class="kpi-value" id="kpi-coord-ativos">48</div>
                     </div>
 
                     <div class="kpi-card">
-                        <div class="kpi-icon kpi-icon-orange"><i class='bx bx-clipboard'></i></div>
+                        <div class="kpi-icon kpi-icon-orange"><i class='bx bx-time-five'></i></div>
                         <div class="kpi-title">Aguardando Revisão</div>
-                        <div class="kpi-value" id="kpi-pendentes">—</div>
+                        <div class="kpi-value" id="kpi-pendentes">12</div>
                     </div>
 
                     <div class="kpi-card">
                         <div class="kpi-icon kpi-icon-blue"><i class='bx bx-group'></i></div>
                         <div class="kpi-title">Alunos Matriculados</div>
-                        <div class="kpi-value" id="kpi-alunos">—</div>
+                        <div class="kpi-value" id="kpi-alunos">3.842</div>
                     </div>
                 </div>
 
@@ -120,9 +112,13 @@
 
                     <div class="table-header">
                         <h2>Listagem de Cursos</h2>
-                        <div class="table-actions">
+                        <div class="table-actions" style="display: flex; gap: 15px; align-items: center;">
+                            <div class="search-box-table" style="position: relative;">
+                                <i class='bx bx-search' style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8;"></i>
+                                <input type="text" id="input-busca" placeholder="Buscar curso..." style="padding: 10px 10px 10px 35px; border: 1px solid var(--borda, #e2e8f0); border-radius: 8px; font-size: 13px; outline: none; width: 250px; color: var(--texto-base, #1e293b);">
+                            </div>
                             <button class="btn-outline"><i class='bx bx-filter'></i> Filtrar</button>
-                            <button class="btn-outline"><i class='bx bx-download'></i> Exportar CSV</button>
+                            <button class="btn-outline" onclick="exportarGeralCSV()"><i class='bx bx-download'></i> Exportar CSV</button>
                         </div>
                     </div>
 
@@ -160,7 +156,7 @@
                                     <div class="td-acoes">
                                         <i class='bx bx-pencil'></i>
                                         <i class='bx bx-show'></i>
-                                        <i class='bx bx-download'></i>
+                                        <i class='bx bx-archive'></i>
                                     </div>
                                 </td>
                             </tr>
@@ -188,7 +184,7 @@
                                     <div class="td-acoes">
                                         <i class='bx bx-pencil'></i>
                                         <i class='bx bx-show'></i>
-                                        <i class='bx bx-download'></i>
+                                        <i class='bx bx-archive'></i>
                                     </div>
                                 </td>
                             </tr>
@@ -206,9 +202,7 @@
                                 </td>
                                 <td>
                                     <div class="td-coordenador pendente">
-                                        <div class="coord-avatar"
-                                            style="background: #f8fafc; color: #cbd5e1; border: 1px dashed #cbd5e1;">NA
-                                        </div>
+                                        <div class="coord-avatar">NA</div>
                                         <span>Pendente vinculação</span>
                                     </div>
                                 </td>
@@ -218,7 +212,7 @@
                                     <div class="td-acoes">
                                         <i class='bx bx-pencil'></i>
                                         <i class='bx bx-show'></i>
-                                        <i class='bx bx-download'></i>
+                                        <i class='bx bx-archive'></i>
                                     </div>
                                 </td>
                             </tr>
@@ -227,7 +221,7 @@
                             <tr>
                                 <td>
                                     <div class="td-curso">
-                                        <div class="curso-sigla" style="background:#f1f5f9;color:#64748b;">ENG</div>
+                                        <div class="curso-sigla sigla-cinza">ENG</div>
                                         <div class="curso-info">
                                             <strong>Engenharia de Software</strong>
                                             <small>Bacharelado • 10 semestres</small>
@@ -246,7 +240,7 @@
                                     <div class="td-acoes">
                                         <i class='bx bx-pencil'></i>
                                         <i class='bx bx-show'></i>
-                                        <i class='bx bx-download'></i>
+                                        <i class='bx bx-archive'></i>
                                     </div>
                                 </td>
                             </tr>
@@ -256,7 +250,7 @@
                     <!-- Pagination -->
                     <div class="pagination-row">
                         <div class="pagination-info">
-                            Mostrando <strong>1-4</strong> de <strong>124</strong> cursos
+                            Mostrando 1-4 de 124 cursos
                         </div>
                         <div class="pagination-controls">
                             <button class="page-btn arrow"><i class='bx bx-chevron-left'></i></button>
@@ -275,7 +269,6 @@
 
                     <!-- Relatórios Rápidos -->
                     <div class="module-relatorios">
-                        <i class='bx bx-bar-chart-alt-2 bg-grafico'></i>
                         <h3>Relatórios Rápidos</h3>
                         <p>Acesse métricas avançadas de desempenho por curso e taxa de evasão semestral.</p>
                         <button class="btn-white">GERAR AGORA</button>
@@ -298,6 +291,9 @@
                 </div>
 
             </div>
+            <footer class="rodape-dashboard" style="text-align: center;">
+                <p>&copy; 2026 Senac Brasil - Portal de Atividades Complementares</p>
+            </footer>
         </main>
     </div>
 
@@ -313,6 +309,24 @@
                 }
             });
 
+            // Profile info from localStorage
+            const nome = localStorage.getItem('nome');
+            const perfil = localStorage.getItem('perfil');
+
+            if (nome) {
+                const sideNome = document.getElementById('sidebar-nome-global');
+                if (sideNome) sideNome.textContent = nome;
+                const sideAvatar = document.getElementById('sidebar-avatar-global');
+                if (sideAvatar) sideAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nome)}&background=0056b3&color=fff`;
+            }
+
+            if (perfil) {
+                const labelMap = { 'super_admin': 'SUPER ADMIN', 'admin': 'SUPER ADMIN', 'coordinator': 'COORDENADOR', 'student': 'ALUNO' };
+                const label = labelMap[perfil.toLowerCase()] || perfil.toUpperCase();
+                const sideRole = document.getElementById('sidebar-role-global');
+                if (sideRole) sideRole.textContent = label;
+            }
+
             // Fetch data
             try {
                 const [cursosResponse, coordResponse] = await Promise.all([
@@ -322,6 +336,8 @@
 
                 const cursos = Array.isArray(cursosResponse) ? cursosResponse : [];
                 const coordenadores = Array.isArray(coordResponse) ? coordResponse : [];
+                window.cursos = cursos; // Para exportarGeralCSV
+                window.todosCursos = cursos; // Para exportarCSV_Curso
 
                 // Update KPIs
                 document.getElementById('kpi-total-cursos').textContent = cursos.length;
@@ -348,83 +364,173 @@
                 });
 
                 // Render Table
-                const tbody = document.querySelector('table tbody');
-                if (tbody) {
+                let filtroStatus = 'todos';
+                let paginaAtual = 1;
+                const POR_PAGINA = 5;
+
+                window.renderTabela = () => {
+                    const tbody = document.querySelector('table tbody');
+                    if (!tbody) return;
                     tbody.innerHTML = '';
 
-                    if (cursos.length === 0) {
+                    const busca = (document.getElementById('input-busca')?.value || '').toLowerCase();
+                    let lista = busca
+                        ? cursos.filter(c =>
+                            c.name.toLowerCase().includes(busca) ||
+                            (c.code || '').toLowerCase().includes(busca)
+                        )
+                        : cursos;
+
+                    if (filtroStatus === 'ativos') {
+                        lista = lista.filter(c => c.is_active !== false);
+                    } else if (filtroStatus === 'inativos') {
+                        lista = lista.filter(c => c.is_active === false);
+                    }
+
+                    // Paginação
+                    const total = lista.length;
+                    const totalPaginas = Math.ceil(total / POR_PAGINA) || 1;
+                    if (paginaAtual > totalPaginas) paginaAtual = 1;
+
+                    const inicio = (paginaAtual - 1) * POR_PAGINA;
+                    const paginados = lista.slice(inicio, inicio + POR_PAGINA);
+
+                    if (paginados.length === 0) {
                         tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 20px;">Nenhum curso encontrado.</td></tr>';
-                    } else {
-                        cursos.forEach(curso => {
-                            // Find coordinator
-                            const coord = coordenadores.find(c => c.course_ids && c.course_ids.includes(curso.id));
+                        
+                        const paginationInfo = document.querySelector('.pagination-info');
+                        if (paginationInfo) paginationInfo.innerHTML = 'Nenhum curso encontrado';
+                        const paginationControls = document.querySelector('.pagination-controls');
+                        if (paginationControls) paginationControls.innerHTML = '';
+                        return;
+                    }
 
-                            // Format date
-                            let dataCriacao = 'N/D';
-                            if (curso.created_at) {
-                                const d = new Date(curso.created_at);
-                                const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-                                dataCriacao = `${d.getDate().toString().padStart(2, '0')} ${meses[d.getMonth()]},<br>${d.getFullYear()}`;
-                            }
+                    paginados.forEach(curso => {
+                        const coord = coordenadores.find(c => c.course_ids && c.course_ids.includes(curso.id));
+                        let dataCriacao = 'N/D';
+                        if (curso.created_at) {
+                            const d = new Date(curso.created_at);
+                            const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+                            dataCriacao = `${d.getDate().toString().padStart(2, '0')} ${meses[d.getMonth()]},<br>${d.getFullYear()}`;
+                        }
+                        const sigla = curso.code ? curso.code.substring(0, 3).toUpperCase() : (curso.name.substring(0, 3).toUpperCase());
 
-                            // Sigla
-                            const sigla = curso.code ? curso.code.substring(0, 3).toUpperCase() : (curso.name.substring(0, 3).toUpperCase());
+                        // Determinar classe da sigla baseado no nome (apenas para exemplo visual como na imagem)
+                        let siglaClass = '';
+                        if (sigla === 'ADM') siglaClass = 'sigla-amarela';
+                        if (sigla === 'ENG') siglaClass = 'sigla-cinza';
 
-                            // Status
-                            const isAtivo = curso.is_active !== false;
-                            const statusClass = isAtivo ? 'status-ativo' : 'status-inativo';
-                            const statusText = isAtivo ? 'Ativo' : 'Inativo';
+                        const isAtivo = curso.is_active !== false;
+                        const statusClass = isAtivo ? 'status-ativo' : 'status-inativo';
+                        const statusText = isAtivo ? 'Ativo' : 'Inativo';
 
-                            // Coordinator info
-                            let coordHtml = `
-                                <div class="td-coordenador pendente">
-                                    <div class="coord-avatar" style="background: #f8fafc; color: #cbd5e1; border: 1px dashed #cbd5e1;">NA</div>
-                                    <span>Pendente vinculação</span>
+                        let coordHtml = `
+                            <div class="td-coordenador pendente">
+                                <div class="coord-avatar">NA</div>
+                                <span>Pendente vinculação</span>
+                            </div>
+                        `;
+
+                        if (coord) {
+                            const initial = coord.full_name ? coord.full_name.charAt(0).toUpperCase() : 'C';
+                            coordHtml = `
+                                <div class="td-coordenador">
+                                    <div class="coord-avatar">${initial}</div>
+                                    <span>${coord.full_name}</span>
                                 </div>
                             `;
+                        }
 
-                            if (coord) {
-                                const initial = coord.full_name ? coord.full_name.charAt(0).toUpperCase() : 'C';
-                                coordHtml = `
-                                    <div class="td-coordenador">
-                                        <div class="coord-avatar">${initial}</div>
-                                        <span>${coord.full_name}</span>
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>
+                                <div class="td-curso">
+                                    <div class="curso-sigla ${siglaClass}">${sigla}</div>
+                                    <div class="curso-info">
+                                        <strong>${curso.name}</strong>
+                                        <small>${curso.modalidade || 'Bacharelado'} • ${curso.semestres || 8} semestres</small>
                                     </div>
-                                `;
-                            }
-
-                            const tr = document.createElement('tr');
-                            tr.innerHTML = `
-                                <td>
-                                    <div class="td-curso">
-                                        <div class="curso-sigla">${sigla}</div>
-                                        <div class="curso-info">
-                                            <strong>${curso.name}</strong>
-                                            <small>${curso.modalidade || 'Bacharelado'} • ${curso.semestres || 8} semestres</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>${coordHtml}</td>
-                                <td class="td-data">${dataCriacao}</td>
-                                <td><span class="status-pill ${statusClass}">${statusText}</span></td>
-                                <td>
-                                    <div class="td-acoes">
-                                        <i class='bx bx-pencil' style="cursor:pointer;" title="Editar"></i>
-                                        <i class='bx bx-show' style="cursor:pointer;" title="Visualizar"></i>
-                                        <i class='bx bx-download' style="cursor:pointer;" title="Exportar"></i>
-                                    </div>
-                                </td>
-                            `;
-                            tbody.appendChild(tr);
-                        });
-                    }
+                                </div>
+                            </td>
+                            <td>${coordHtml}</td>
+                            <td class="td-data">${dataCriacao}</td>
+                            <td><span class="status-pill ${statusClass}">${statusText}</span></td>
+                            <td>
+                                <div class="td-acoes">
+                                    <a href="editar_curso.html?id=${curso.id}" style="color:inherit;"><i class='bx bx-pencil' title="Editar"></i></a>
+                                    <a href="editar_curso.html?id=${curso.id}" style="color:inherit;"><i class='bx bx-show' title="Visualizar"></i></a>
+                                    <i class='bx bx-archive' title="Arquivar" onclick="deletarCurso(${curso.id}, '${curso.name}')"></i>
+                                </div>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
 
                     // Update pagination text
                     const paginationInfo = document.querySelector('.pagination-info');
+                    const paginationControls = document.querySelector('.pagination-controls');
+
                     if (paginationInfo) {
-                        paginationInfo.innerHTML = `Mostrando <strong>1-${cursos.length}</strong> de <strong>${cursos.length}</strong> cursos`;
+                        const inicioExibido = inicio + 1;
+                        const fimExibido = Math.min(inicio + POR_PAGINA, total);
+                        paginationInfo.innerHTML = `Mostrando <strong>${inicioExibido}-${fimExibido}</strong> de <strong>${total}</strong> cursos`;
                     }
-                }
+
+                    if (paginationControls) {
+                        let htmlControles = `<button class="page-btn arrow" onclick="mudarPagina(${paginaAtual - 1})" ${paginaAtual === 1 ? 'disabled' : ''}><i class='bx bx-chevron-left'></i></button>`;
+
+                        for (let i = 1; i <= totalPaginas; i++) {
+                            htmlControles += `<button class="page-btn ${i === paginaAtual ? 'active' : ''}" onclick="mudarPagina(${i})">${i}</button>`;
+                        }
+
+                        htmlControles += `<button class="page-btn arrow" onclick="mudarPagina(${paginaAtual + 1})" ${paginaAtual === totalPaginas ? 'disabled' : ''}><i class='bx bx-chevron-right'></i></button>`;
+
+                        paginationControls.innerHTML = htmlControles;
+                    }
+                };
+
+                window.mudarPagina = (n) => {
+                    paginaAtual = n;
+                    renderTabela();
+                };
+
+                // Função Deletar
+                window.deletarCurso = async (id, nome) => {
+                    if (!confirm(`Tem certeza que deseja excluir o curso "${nome}"? Esta ação não pode ser desfeita.`)) return;
+                    try {
+                        await apiDelete(`/admin/curso/${id}`);
+                        alert('Curso excluído com sucesso!');
+                        location.reload();
+                    } catch (err) {
+                        alert('Erro ao excluir curso: ' + err.message);
+                    }
+                };
+
+                // Inicial
+                renderTabela();
+
+                // Listener de busca
+                let debounce;
+                document.getElementById('input-busca')?.addEventListener('input', () => {
+                    clearTimeout(debounce);
+                    debounce = setTimeout(() => {
+                        paginaAtual = 1;
+                        renderTabela();
+                    }, 250);
+                });
+
+                // Listener de Filtro
+                const btnFiltrar = document.querySelector('.btn-outline'); // O primeiro é o Filtrar
+                btnFiltrar?.addEventListener('click', () => {
+                    if (filtroStatus === 'todos') filtroStatus = 'ativos';
+                    else if (filtroStatus === 'ativos') filtroStatus = 'inativos';
+                    else filtroStatus = 'todos';
+
+                    const labelMap = { 'todos': 'Filtrar', 'ativos': 'Ativos', 'inativos': 'Inativos' };
+                    btnFiltrar.innerHTML = `<i class='bx bx-filter'></i> ${labelMap[filtroStatus]}`;
+                    paginaAtual = 1;
+                    renderTabela();
+                });
 
             } catch (err) {
                 console.error("Erro ao carregar dados:", err);
@@ -434,6 +540,57 @@
                 }
             }
         });
+
+        function exportarCSV_Curso(id) {
+            const curso = todosCursos.find(c => String(c.id) === String(id));
+            if (!curso) return;
+
+            const cabecalho = ['ID', 'Nome', 'Sigla', 'Carga Horaria', 'Semestres', 'Modalidade', 'Turno', 'Status'];
+            const linha = [
+                curso.id,
+                curso.name,
+                curso.code || '',
+                curso.minimum_required_hours || 0,
+                curso.semestres || '',
+                curso.modalidade || '',
+                curso.turno || '',
+                curso.is_active ? 'Ativo' : 'Inativo'
+            ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(',');
+
+            const csv = [cabecalho.join(','), linha].join('\n');
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `curso_${curso.name.replace(/\s+/g, '_')}.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function exportarGeralCSV() {
+            if (typeof cursos !== 'undefined' && cursos.length > 0) {
+                const cabecalho = ['ID', 'Nome', 'Sigla', 'Carga Horaria', 'Semestres', 'Modalidade', 'Turno', 'Status'];
+                const linhas = cursos.map(curso => [
+                    curso.id,
+                    curso.name,
+                    curso.code || '',
+                    curso.minimum_required_hours || 0,
+                    curso.semestres || '',
+                    curso.modalidade || '',
+                    curso.turno || '',
+                    curso.is_active ? 'Ativo' : 'Inativo'
+                ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(','));
+
+                const csv = [cabecalho.join(','), ...linhas].join('\n');
+                const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `lista_cursos_${new Date().toISOString().slice(0, 10)}.csv`;
+                link.click();
+                URL.revokeObjectURL(url);
+            }
+        }
     </script>
 </body>
 

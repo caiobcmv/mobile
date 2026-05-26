@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const path = require('path');
 
 const app = express();
@@ -53,7 +53,7 @@ app.get('/debug-db', async (req, res) => {
 });
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'frontend','pages' ,'index.html'));
+    res.sendFile(path.join(__dirname, '..', 'frontend', 'pages', 'index.html'));
 });
 
 app.use((err, req, res, next) => {

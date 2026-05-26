@@ -294,3 +294,80 @@ exports.deleteCoordenador = async (req, res) => {
         res.status(500).json({ erro: err.message });
     }
 };
+
+exports.getListaSubmissoes = async (req, res) => {
+    try {
+        const resultado = await pool.query(
+            `SELECT
+                s.*,
+                u.full_name AS student_name,
+                u.email AS student_email,
+                sp.ra AS student_ra,
+                c.name AS course_name,
+                cat.name AS category_name
+             FROM submissions s
+             JOIN user_courses uc ON uc.id = s.user_course_id
+             JOIN users u ON u.id = uc.user_id
+             LEFT JOIN student_profiles sp ON sp.user_id = u.id
+             JOIN courses c ON c.id = uc.course_id
+             JOIN categories cat ON cat.id = s.category_id
+             ORDER BY s.submitted_at DESC`
+        );
+
+        const contadores = await pool.query(
+            `SELECT
+                COUNT(*) FILTER (WHERE status = 'submitted') AS pendentes,
+                COUNT(*) FILTER (WHERE status = 'approved') AS aprovadas,
+                COUNT(*) FILTER (WHERE status = 'rejected') AS reprovadas,
+                COUNT(*) AS total
+             FROM submissions`
+        );
+
+        res.status(200).json({
+            submissoes: resultado.rows,
+            contadores: contadores.rows[0]
+        });
+    } catch (err) {
+        res.status(500).json({ erro: err.message });
+    }
+};
+
+exports.getListaAlunos = async (req, res) => {
+    try {
+        const resultado = await pool.query(
+            `SELECT 
+                u.id, u.full_name, u.email, u.status,
+                sp.ra,
+                array_agg(DISTINCT c.name) FILTER (WHERE c.name IS NOT NULL) AS course_names
+             FROM users u
+             JOIN user_roles ur ON ur.user_id = u.id
+             JOIN roles r ON r.id = ur.role_id
+             LEFT JOIN student_profiles sp ON sp.user_id = u.id
+             LEFT JOIN user_courses uc ON uc.user_id = u.id
+             LEFT JOIN courses c ON c.id = uc.course_id
+             WHERE r.name = 'student'
+             GROUP BY u.id, u.full_name, u.email, u.status, sp.ra
+             ORDER BY u.full_name`
+        );
+        res.status(200).json(resultado.rows);
+    } catch (err) {
+        res.status(500).json({ erro: "Erro ao buscar alunos: " + err.message });
+    }
+};
+
+exports.getLogs = async (req, res) => {
+    const limite = parseInt(req.query.limite) || 20;
+    try {
+        const sql = 'SELECT al.id,al.action,al.entity_name,al.created_at,u.full_name AS usuario_nome FROM audit_logs al LEFT JOIN users u ON u.id=al.user_id ORDER BY al.created_at DESC LIMIT $1';
+        const r = await pool.query(sql, [limite]);
+        res.status(200).json(r.rows);
+    } catch (err) { res.status(500).json({ erro: err.message }); }
+};
+
+
+exports.getLimitesCursos = async (req, res) => {
+    try {
+        const r = await pool.query('SELECT c.id,c.name,c.code,c.minimum_required_hours FROM courses c WHERE c.is_active=true ORDER BY c.name');
+        res.status(200).json(r.rows);
+    } catch (err) { res.status(500).json({ erro: err.message }); }
+};

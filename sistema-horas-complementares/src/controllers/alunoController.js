@@ -4,6 +4,9 @@ const { emailNovaSubmissao } = require('../services/emailService');
 
 
 exports.postSubmeterAtividade = async (req, res) => {
+
+    const body = req.body || {};
+
     const {
         course_id,
         category_id,
@@ -14,16 +17,28 @@ exports.postSubmeterAtividade = async (req, res) => {
         organizer_name,
         requested_hours,
         activity_date
-    } = req.body;
+    } = body;
 
     const user_id = req.usuario.id; // vem do token
     const arquivo = req.file;
 
+    const userIdNumber = parseInt(user_id);
+    const courseIdNumber = parseInt(course_id);
+    const categoryIdNumber = parseInt(category_id);
+
     try {
+
+        console.log("BODY:", body);
+        console.log("FILE:", req.file);
+
+        console.log("user_id:", user_id);
+        console.log("course_id:", course_id);
+        console.log("convertido:", courseIdNumber);
+
         const userCourse = await pool.query(
             `SELECT id FROM user_courses
              WHERE user_id = $1 AND course_id = $2 AND is_active = true`,
-            [user_id, course_id]
+            [userIdNumber, courseIdNumber]
         );
 
         if (userCourse.rows.length === 0) {
@@ -36,7 +51,7 @@ exports.postSubmeterAtividade = async (req, res) => {
         const regra = await pool.query(
             `SELECT * FROM course_activity_rules
              WHERE course_id = $1 AND category_id = $2`,
-            [course_id, category_id]
+            [courseIdNumber, categoryIdNumber]
         );
 
         if (regra.rows.length === 0) {
@@ -89,16 +104,16 @@ exports.postSubmeterAtividade = async (req, res) => {
             JOIN users u ON u.id = cc.user_id
             WHERE cc.course_id = $1 AND cc.is_active = true`,
             [course_id]
-        );
+         );
 
         for (const coord of coordenadores.rows) {
             await emailNovaSubmissao(coord.email, title);
 
-            await pool.query(
+           await pool.query(
                 `INSERT INTO notifications (user_id, submission_id, type, title, message)
                 VALUES ($1, $2, 'submission_created', $3, $4)`,
                 [
-                    coord.id,
+                    coord.id,  
                     submissao.id,
                     `Nova submissão: ${title}`,
                     `O aluno submeteu uma nova atividade para avaliação.`
@@ -198,7 +213,7 @@ exports.deleteSubmissao = async (req, res) => {
 
 exports.getMinhasSubmissoes = async (req, res) => {
     const user_id = req.usuario.id;
-    const { status, course_id } = req.query;
+    const { status, course_id, page, limit } = req.query;
 
     try {
         let params = [user_id];
@@ -212,6 +227,52 @@ exports.getMinhasSubmissoes = async (req, res) => {
         if (course_id) {
             filtros += ` AND uc.course_id = $${params.length + 1}`;
             params.push(course_id);
+        }
+
+        // Se `page` for fornecido, aplicamos paginação
+        if (page) {
+            const itensPorPagina = parseInt(limit) || 5;
+            const paginaAtual = Math.max(parseInt(page) || 1, 1);
+            const offset = (paginaAtual - 1) * itensPorPagina;
+
+            const countResult = await pool.query(
+                `SELECT COUNT(*) as total
+                 FROM submissions s
+                 JOIN user_courses uc ON uc.id = s.user_course_id
+                 WHERE uc.user_id = $1
+                 ${filtros}`,
+                params
+            );
+
+            const total = parseInt(countResult.rows[0].total);
+            const totalPaginas = Math.ceil(total / itensPorPagina) || 1;
+
+            const resultado = await pool.query(
+                `SELECT
+                    s.*,
+                    c.name AS course_name,
+                    cat.name AS category_name,
+                    sf.original_filename,
+                    sf.storage_path,
+                    sf.ocr_confidence
+                 FROM submissions s
+                 JOIN user_courses uc ON uc.id = s.user_course_id
+                 JOIN courses c ON c.id = uc.course_id
+                 JOIN categories cat ON cat.id = s.category_id
+                 LEFT JOIN submission_files sf ON sf.submission_id = s.id
+                 WHERE uc.user_id = $1
+                 ${filtros}
+                 ORDER BY s.submitted_at DESC
+                 LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+                [...params, itensPorPagina, offset]
+            );
+
+            return res.status(200).json({
+                submissoes: resultado.rows,
+                total,
+                total_pages: totalPaginas,
+                current_page: paginaAtual
+            });
         }
 
         const resultado = await pool.query(
@@ -243,7 +304,7 @@ exports.getMinhasSubmissoes = async (req, res) => {
 exports.getResumoHoras = async (req, res) => {
     const user_id = req.usuario.id;
     try {
-        // 1. Pegar o curso do aluno
+        
         const userCourse = await pool.query(
             `SELECT uc.course_id, c.name as course_name, c.minimum_required_hours
              FROM user_courses uc
@@ -258,7 +319,6 @@ exports.getResumoHoras = async (req, res) => {
 
         const { course_id, minimum_required_hours } = userCourse.rows[0];
 
-        // 2. Pegar as regras (limites por categoria)
         const regras = await pool.query(
             `SELECT car.*, cat.name as category_name
              FROM course_activity_rules car
@@ -267,7 +327,6 @@ exports.getResumoHoras = async (req, res) => {
             [course_id]
         );
 
-        // 3. Pegar as horas aprovadas por categoria
         const aprovadas = await pool.query(
             `SELECT s.category_id, SUM(s.approved_hours) as total_aprovado
              FROM submissions s
@@ -277,7 +336,6 @@ exports.getResumoHoras = async (req, res) => {
             [user_id, course_id]
         );
 
-        // 4. Pegar as horas em análise (pendentes)
         const emAnalise = await pool.query(
             `SELECT SUM(s.requested_hours) as total_pendente
              FROM submissions s
@@ -296,7 +354,6 @@ exports.getResumoHoras = async (req, res) => {
         const limites = regras.rows.map(regra => {
             const horasAprovadas = aprovadasMap[regra.category_id] || 0;
             return {
-                category_id: regra.category_id,
                 categoria: regra.category_name,
                 min_horas: regra.min_hours,
                 max_horas: regra.max_hours,
@@ -308,7 +365,6 @@ exports.getResumoHoras = async (req, res) => {
         const totalIntegralizado = Object.values(aprovadasMap).reduce((a, b) => a + b, 0);
 
         res.status(200).json({
-            course_id: course_id,
             curso: userCourse.rows[0].course_name,
             total_obrigatorio: minimum_required_hours,
             total_integralizado: totalIntegralizado,

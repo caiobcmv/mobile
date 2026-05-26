@@ -3,7 +3,9 @@
  * Localizado em: /frontend/services/script.js
  */
 
-var API = ''; // Caminho relativo - usa a mesma origem do servidor
+if (typeof API === 'undefined') {
+    var API = ''; // Caminho relativo - usa a mesma origem do servidor
+}
 
 /* ========== LOGIN ========== */
 
@@ -56,7 +58,7 @@ function acessarPortal() {
             } else if (perfilUpper === 'COORDINATOR' || perfilUpper === 'COORDINATOR') {
                 window.location.href = '/pages/dashboardadm.html';
             } else if (perfilUpper === 'ADMIN' || perfilUpper === 'SUPER_ADMIN') {
-                window.location.href = '/pages/configadm.html';
+                window.location.href = '/pages/cursosuperadm.html';
             } else {
                 alert('Perfil não reconhecido pelo sistema: ' + perfilReal);
             }
@@ -142,9 +144,15 @@ async function apiFetch(endpoint, options = {}) {
     }
 }
 
-const apiGet = (endpoint) => apiFetch(endpoint, { method: 'GET' });
-const apiPost = (endpoint, body) => apiFetch(endpoint, { method: 'POST', body });
-const apiPatch = (endpoint, body) => apiFetch(endpoint, { method: 'PATCH', body });
+if (typeof apiGet === 'undefined') {
+    window.apiGet = (endpoint) => apiFetch(endpoint, { method: 'GET' });
+}
+if (typeof apiPost === 'undefined') {
+    window.apiPost = (endpoint, body) => apiFetch(endpoint, { method: 'POST', body });
+}
+if (typeof apiPatch === 'undefined') {
+    window.apiPatch = (endpoint, body) => apiFetch(endpoint, { method: 'PATCH', body });
+}
 
 /* ========== UTILS (Formatação e UI) ========== */
 
@@ -203,25 +211,111 @@ document.addEventListener('DOMContentLoaded', () => {
         let links = [];
         if (isSuperAdmin) {
             links = [
+                { href: 'dashboard_superadmin.html', icon: 'bx-grid-alt', text: 'Dashboard' },
                 { href: 'cursosuperadm.html', icon: 'bx-book', text: 'Cursos' },
                 { href: 'coordenadores.html', icon: 'bx-user-voice', text: 'Coordenadores' },
                 { href: 'submissoes_superadmin.html', icon: 'bx-check-square', text: 'Submissões' },
-                { href: 'configadm.html', icon: 'bx-cog', text: 'Configurações' }
+                { href: 'configuracoes.html', icon: 'bx-cog', text: 'Configurações' }
             ];
         } else if (isCoordenador) {
             links = [
                 { href: 'dashboardadm.html', icon: 'bx-grid-alt', text: 'Dashboard' },
                 { href: 'alunos.html', icon: 'bx-group', text: 'Alunos' },
-                { href: 'protocoloadm.html', icon: 'bx-file', text: 'Protocolos' },
-                { href: 'submissoes.html', icon: 'bx-upload', text: 'Submissões' },
+                { href: 'protocoloadm.html', icon: 'bx-upload', text: 'Submissões' },
+                { href: 'cadastrar_regra.html', icon: 'bx-list-check', text: 'Regras de Horas' },
                 { href: 'relatorios.html', icon: 'bx-bar-chart-alt-2', text: 'Relatórios' },
-                { href: 'configuracao.html', icon: 'bx-cog', text: 'Configurações' }
+                { href: 'configuracoes.html', icon: 'bx-cog', text: 'Configurações' }
             ];
         }
 
         links.forEach(l => {
-            const isActive = currentPage === l.href ? 'active' : '';
+            // Ajuste para manter o menu lateral sincronizado com a página atual
+            let targetActive = currentPage;
+            
+            // Submissões e Análise ativam o item "Submissões" (protocoloadm.html)
+            if (['protocoloadm.html', 'analise_certificado.html'].includes(currentPage)) {
+                targetActive = 'protocoloadm.html';
+            }
+            // Gestão de Alunos, Edição e Cadastro ativam o item "Alunos"
+            else if (['alunos.html', 'editar-aluno.html', 'novo-aluno.html'].includes(currentPage)) {
+                targetActive = 'alunos.html';
+            }
+            // Repositório e Extrato de Horas são visualizações vinculadas ao Dashboard (Início)
+            else if (['submissoes.html', 'extrato_certificado.html'].includes(currentPage)) {
+                targetActive = isSuperAdmin ? 'dashboard_superadmin.html' : 'dashboardadm.html';
+            }
+            // Cadastro de coordenador ativa o item "Coordenadores"
+            else if (['cadastrar_coordenador.html', 'editar_coordenador.html'].includes(currentPage)) {
+                targetActive = 'coordenadores.html';
+            }
+            
+            const isActive = targetActive === l.href ? 'active' : '';
             menuNav.innerHTML += `<a href="${l.href}" class="link-menu ${isActive}"><i class='bx ${l.icon}'></i> ${l.text}</a>`;
         });
+    }
+
+    // ─── Perfil dinâmico da sidebar ───
+    const roleMap = {
+        'super_admin':  'Super Admin',
+        'admin':        'Super Admin',
+        'coordinator':  'Coordenador',
+        'coordenador':  'Coordenador',
+        'student':      'Aluno'
+    };
+
+    function preencherSidebar(nome, perfil) {
+        const roleTexto = roleMap[perfil.toLowerCase()] || perfil;
+        const elNome   = document.getElementById('sidebar-nome-global');
+        const elRole   = document.getElementById('sidebar-role-global');
+        const elAvatar = document.getElementById('sidebar-avatar-global');
+        if (elNome)   elNome.textContent = nome;
+        if (elRole)   elRole.textContent = roleTexto;
+        if (elAvatar) elAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nome)}&background=0056b3&color=fff&bold=true`;
+
+        // --- ADICIONADO: Preenchimento do Header também (se existir) ---
+        const elHeaderNome = document.getElementById('header-nome-usuario');
+        const elHeaderRole = document.getElementById('header-role-usuario');
+        const elHeaderAvatar = document.getElementById('header-avatar-img') || document.getElementById('header-avatar-box');
+        
+        if (elHeaderNome) elHeaderNome.textContent = nome;
+        if (elHeaderRole) elHeaderRole.textContent = roleTexto;
+        
+        if (elHeaderAvatar) {
+            if (elHeaderAvatar.id === 'header-avatar-box') {
+                elHeaderAvatar.textContent = nome.split(' ').filter(Boolean).slice(0, 2).map(n => n[0]).join('').toUpperCase();
+            } else if (elHeaderAvatar.tagName === 'IMG') {
+                elHeaderAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nome)}&background=f6821f&color=fff`;
+            } else {
+                elHeaderAvatar.style.backgroundImage = `url('https://ui-avatars.com/api/?name=${encodeURIComponent(nome)}&background=f6821f&color=fff')`;
+                elHeaderAvatar.style.backgroundSize = 'cover';
+            }
+        }
+    }
+
+    const nomeSalvo   = localStorage.getItem('nome');
+    const perfilSalvo = localStorage.getItem('perfil') || '';
+
+    if (nomeSalvo) {
+        // Nome já salvo no localStorage — usa direto
+        preencherSidebar(nomeSalvo, perfilSalvo);
+    } else if (perfilSalvo) {
+        // Nome ausente (sessão antiga) — tenta buscar via API
+        const token = localStorage.getItem('token');
+        if (token) {
+            fetch('/auth/me', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+                if (data && (data.full_name || data.nome)) {
+                    const nome = data.full_name || data.nome;
+                    localStorage.setItem('nome', nome);
+                    preencherSidebar(nome, perfilSalvo);
+                } else {
+                    preencherSidebar('Usuário', perfilSalvo);
+                }
+            })
+            .catch(() => preencherSidebar('Usuário', perfilSalvo));
+        }
     }
 });

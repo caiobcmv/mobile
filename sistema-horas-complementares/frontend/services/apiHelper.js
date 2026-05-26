@@ -4,7 +4,14 @@
  * Gerencia Autenticação, Guards de Rota e Transformação de Dados.
  */
  
-var API = ''; // Caminho relativo (usado pelo servidor Express)
+// Força a conexão com o backend no IP 127.0.0.1 (mais estável que 'localhost')
+var API = 'http://127.0.0.1:3001';
+
+// Se já estivermos rodando dentro do próprio servidor, usamos caminho relativo
+if (window.location.origin.includes(':3001') || window.location.origin.includes('onrender.com')) {
+    API = window.location.origin;
+}
+window.API = API; // Garante visibilidade global
  
 /* ---------- Camada de Autenticação (Auth Service) ---------- */
  
@@ -111,9 +118,21 @@ async function apiCall(endpoint, method = 'GET', body = null) {
 }
  
 // Atalhos para os métodos HTTP mais comuns
-const apiGet = (endpoint) => apiCall(endpoint, 'GET');
-const apiPost = (endpoint, body) => apiCall(endpoint, 'POST', body);
-const apiPatch = (endpoint, body) => apiCall(endpoint, 'PATCH', body);
+if (typeof apiGet === 'undefined') {
+    window.apiGet = (endpoint) => apiCall(endpoint, 'GET');
+}
+if (typeof apiPost === 'undefined') {
+    window.apiPost = (endpoint, body) => apiCall(endpoint, 'POST', body);
+}
+if (typeof apiPatch === 'undefined') {
+    window.apiPatch = (endpoint, body) => apiCall(endpoint, 'PATCH', body);
+}
+if (typeof apiPut === 'undefined') {
+    window.apiPut = (endpoint, body) => apiCall(endpoint, 'PUT', body);
+}
+if (typeof apiDelete === 'undefined') {
+    window.apiDelete = (endpoint) => apiCall(endpoint, 'DELETE');
+}
  
 /* ---------- Camada de UI/Formatadores (Component Helpers) ---------- */
  

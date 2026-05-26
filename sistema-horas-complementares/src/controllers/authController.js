@@ -4,8 +4,7 @@ const jwt = require('jsonwebtoken');
 
 exports.login = async (req, res) => {
      console.log('Entrou no login');
-    const { email, senha, password } = req.body;
-    const activeSenha = senha || password;
+    const { email, senha } = req.body;
     console.log('Login tentativa:', email);
 
     try {
@@ -25,7 +24,7 @@ exports.login = async (req, res) => {
             return res.status(401).json({ erro: "Email ou senha incorretos." });
         }
 
-        const senhaCorreta = await bcrypt.compare(activeSenha, usuario.password_hash);
+        const senhaCorreta = await bcrypt.compare(senha, usuario.password_hash);
         if (!senhaCorreta) {
             return res.status(401).json({ erro: "Email ou senha incorretos." });
         }
@@ -51,17 +50,33 @@ exports.login = async (req, res) => {
             mensagem: "Login realizado com sucesso!",
             token,
             perfis: usuario.roles,
-            primeiroAcesso,
-            user: {
-                id: String(usuario.id),
-                name: usuario.full_name,
-                email: usuario.email,
-                role: usuario.roles.includes('student') ? 'aluno' : (usuario.roles.includes('coordinator') ? 'coordenador' : 'superadmin')
-            }
+            nome: usuario.full_name,
+            email: usuario.email,
+            userId: usuario.id,
+            primeiroAcesso
         });
 
     } catch (err) {
         res.status(500).json({ erro: "Erro no login: " + err.message });
+    }
+};
+
+exports.me = async (req, res) => {
+    try {
+        const resultado = await pool.query(
+            `SELECT u.id, u.full_name, u.email, array_agg(r.name) AS roles
+             FROM users u
+             JOIN user_roles ur ON ur.user_id = u.id
+             JOIN roles r ON r.id = ur.role_id
+             WHERE u.id = $1
+             GROUP BY u.id`,
+            [req.usuario.id]
+        );
+        const user = resultado.rows[0];
+        if (!user) return res.status(404).json({ erro: 'Usuário não encontrado.' });
+        res.status(200).json({ full_name: user.full_name, email: user.email, perfis: user.roles });
+    } catch (err) {
+        res.status(500).json({ erro: err.message });
     }
 };
 

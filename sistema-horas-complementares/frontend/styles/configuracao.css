@@ -1,19 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700:wght@400;600;700;800&display=swap');
 
-:root {
-    --azul-senac: #004a8e;
-    --laranja: #d4800a;
-    --fundo: #f8fafc;
-    --borda: #e2e8f0;
-    --texto: #1a2e5a;
-    --texto-light: #64748b;
-}
+
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
     background-color: var(--fundo);
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Outfit', 'Inter', sans-serif;
     color: var(--texto);
 }
 
@@ -32,19 +25,13 @@ body {
 }
 
 .conteudo-principal {
-    margin-left: 260px; /* Garante que o conteúdo não entre atrás da barra */
     flex: 1;
     padding: 2.5rem 4rem;
     min-height: 100vh;
 }
 
 /* --- HEADER --- */
-.cabecalho-topo {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2.5rem;
-}
+
 
 .titulo-secao h1 { font-size: 26px; font-weight: 800; }
 .titulo-secao p { font-size: 14px; color: var(--texto-light); }
@@ -240,87 +227,6 @@ transform: translateX(22px);
 }
 
 /* ========================= */
-/* SIDEBAR (REUSO DO MENU)   */
-/* ========================= */
-
-/* Área da logo */
-.logo-secao {
-padding: 0 2rem;
-margin-bottom: 2rem;
-text-align: left;
-}
-
-.logo-secao img {
-width: 100px;
-}
-
-.logo-secao p {
-font-size: 10px;
-font-weight: 800;
-color: var(--texto-light);
-}
-
-/* Links do menu lateral */
-.link-menu {
-display: flex;
-align-items: center;
-padding: 12px 2rem;
-text-decoration: none;
-color: var(--texto-light);
-gap: 15px;
-font-size: 14px;
-font-weight: 600;
-}
-
-/* Link ativo no menu */
-.link-menu.active {
-background: var(--azul-senac);
-color: white;
-border-radius: 0 30px 30px 0;
-margin-right: 15px;
-}
-
-/* ========================= */
-/* RODAPÉ DA SIDEBAR         */
-/* ========================= */
-
-.usuario-rodape {
-position: absolute;
-bottom: 2rem;
-padding: 0 2rem;
-}
-
-/* Foto do usuário */
-.foto-perfil {
-width: 40px;
-height: 40px;
-background: #cbd5e1;
-border-radius: 50%;
-margin-bottom: 10px;
-}
-
-/* Informações do usuário */
-.info-usuario strong {
-display: block;
-font-size: 13px;
-}
-
-.info-usuario small {
-font-size: 10px;
-color: var(--texto-light);
-}
-
-/* Link sair */
-.link-sair {
-display: block;
-margin-top: 10px;
-text-decoration: none;
-color: #b91c1c;
-font-size: 12px;
-font-weight: 700;
-}
-
-/* ========================= */
 /* FOOTER DA PÁGINA          */
 /* ========================= */
 
@@ -330,3 +236,5 @@ text-align: center;
 font-size: 11px;
 color: var(--texto-light);
 }
+
+

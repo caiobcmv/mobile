@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Senac - Submissões (Super Admin)</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="/styles/sidebar.css">
     <link rel="stylesheet" href="/styles/submissoes_superadmin.css">
     <!-- Apenas script.js — já contém apiGet, protegerPagina, logout -->
     <script src="/services/script.js"></script>
 </head>
+
 <body>
 
     <!-- Guard: somente SUPER_ADMIN -->
@@ -23,10 +26,15 @@
         <!-- Sidebar Unificada (menu preenchido dinamicamente pelo script.js) -->
         <aside class="sidebar-dark">
             <div class="logo-secao">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/8/86/Senac_logo.svg" alt="Senac" class="logo-img">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/8/86/Senac_logo.svg" alt="Senac"
+                    class="logo-img">
                 <span class="logo-subtext">GESTÃO ACADÊMICA</span>
             </div>
-            <nav class="menu-navegacao"></nav>
+            <nav class="menu-navegacao">
+                <a href="cursosuperadm.html" class="link-menu"><i class='bx bx-book'></i> Cursos</a>
+                <a href="coordenadores.html" class="link-menu"><i class='bx bx-user-voice'></i> Coordenadores</a>
+                <a href="submissoes_superadmin.html" class="link-menu"><i class='bx bx-check-square'></i> Submissões</a>
+            </nav>
             <div class="sidebar-bottom-action">
                 <div class="perfil-sidebar">
                     <img id="sidebar-avatar-global"
@@ -47,25 +55,13 @@
         <main class="conteudo-principal">
 
             <!-- Top Header -->
-            <header class="top-header">
-                <div class="top-header-left">
-                    <h2>Portal Acadêmico</h2>
-                    <div class="search-wrap">
-                        <i class='bx bx-search'></i>
-                        <input type="text" id="input-busca" placeholder="Buscar por nome do aluno ou atividade...">
-                    </div>
+            <header class="cabecalho-topo">
+                <div>
+                    <span class="titulo-portal">Portal do Super Administrador</span>
                 </div>
-                <div class="header-right">
-                    <i class='bx bx-bell icon-header'></i>
-                    <i class='bx bx-help-circle icon-header'></i>
-                    <div class="user-profile">
-                        <div class="user-info">
-                            <small id="header-role">Super Admin</small>
-                            <strong id="header-nome">Carregando...</strong>
-                        </div>
-                        <img id="header-avatar" src="https://ui-avatars.com/api/?name=SA&background=f6821f&color=fff" alt="User">
-                    </div>
-                </div>
+                <button class="btn-back" onclick="window.history.back()" style="margin-left: auto; padding: 8px 16px; font-size: 12px; background: white; border: 1px solid #cbd5e1 !important;">
+                    <i class='bx bx-arrow-back'></i> VOLTAR
+                </button>
             </header>
 
             <div class="page-container">
@@ -73,6 +69,7 @@
                 <!-- Title & Actions -->
                 <div class="header-action-row">
                     <div class="page-title">
+                        <div class="breadcrumb">PORTAL<i class='bx bx-chevron-right'></i> <span>submissões</span></div>
                         <h1>Listagem de Submissões</h1>
                         <p>Gestão de horas complementares e atividades extracurriculares.</p>
                     </div>
@@ -130,6 +127,10 @@
                             <button data-filter="approved">Aprovadas</button>
                             <button data-filter="rejected">Reprovadas</button>
                         </div>
+                        <div class="search-box-table">
+                            <i class='bx bx-search'></i>
+                            <input type="text" id="input-busca" placeholder="Buscar por aluno ou RA...">
+                        </div>
                         <div class="selects-filter">
                             <select id="filtro-curso">
                                 <option value="">Todos os Cursos</option>
@@ -150,20 +151,31 @@
                                 <th>HORAS</th>
                                 <th>DATA DE ENVIO</th>
                                 <th>STATUS</th>
-                                <th>AÇÕES</th>
                             </tr>
                         </thead>
                         <tbody id="tabela-submissoes">
                             <!-- Skeleton loading -->
-                            <tr class="skeleton-row"><td colspan="6">
-                                <div style="height:48px;background:#e2e8f0;border-radius:8px;animation:pulse 1.5s infinite;"></div>
-                            </td></tr>
-                            <tr class="skeleton-row"><td colspan="6">
-                                <div style="height:48px;background:#e2e8f0;border-radius:8px;animation:pulse 1.5s infinite 0.2s;"></div>
-                            </td></tr>
-                            <tr class="skeleton-row"><td colspan="6">
-                                <div style="height:48px;background:#e2e8f0;border-radius:8px;animation:pulse 1.5s infinite 0.4s;"></div>
-                            </td></tr>
+                            <tr class="skeleton-row">
+                                <td colspan="6">
+                                    <div
+                                        style="height:48px;background:#e2e8f0;border-radius:8px;animation:pulse 1.5s infinite;">
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="skeleton-row">
+                                <td colspan="6">
+                                    <div
+                                        style="height:48px;background:#e2e8f0;border-radius:8px;animation:pulse 1.5s infinite 0.2s;">
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="skeleton-row">
+                                <td colspan="6">
+                                    <div
+                                        style="height:48px;background:#e2e8f0;border-radius:8px;animation:pulse 1.5s infinite 0.4s;">
+                                    </div>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
 
@@ -184,8 +196,10 @@
                     <div class="banner-content">
                         <span class="banner-tag">DICA DE PRODUTIVIDADE</span>
                         <h3>Análise em Lote</h3>
-                        <p>Use os filtros de status para localizar rapidamente submissões pendentes e agilizar o fluxo de análise durante períodos de alta demanda.</p>
-                        <button class="btn-white" onclick="document.querySelector('[data-filter=submitted]').click()">Ver Pendentes</button>
+                        <p>Use os filtros de status para localizar rapidamente submissões pendentes e agilizar o fluxo
+                            de análise durante períodos de alta demanda.</p>
+                        <button class="btn-white"
+                            onclick="document.querySelector('[data-filter=submitted]').click()">Ver Pendentes</button>
                     </div>
                     <div class="banner-shortcuts">
                         <div class="shortcuts-title">Atalhos de Teclado</div>
@@ -205,13 +219,23 @@
                 </div>
 
             </div>
+        <footer class="rodape-dashboard" style="text-align: center;">
+            <p>&copy; 2026 Senac Brasil - Portal de Atividades Complementares</p>
+        </footer>
         </main>
     </div>
 
     <style>
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
         }
     </style>
 
@@ -226,7 +250,7 @@
 
         // ─── Dados do usuário logado na sidebar/header ────────────────────────────
         document.addEventListener('DOMContentLoaded', () => {
-            const nome  = localStorage.getItem('nome');
+            const nome = localStorage.getItem('nome');
             const perfil = localStorage.getItem('perfil');
 
             if (nome) {
@@ -242,7 +266,7 @@
                 if (sideAvatar) sideAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nome)}&background=0056b3&color=fff`;
             }
             if (perfil) {
-                const labelMap = { 'super_admin':'Super Admin','admin':'Super Admin','coordinator':'Coordenador','student':'Aluno' };
+                const labelMap = { 'super_admin': 'Super Admin', 'admin': 'Super Admin', 'coordinator': 'Coordenador', 'student': 'Aluno' };
                 const label = labelMap[perfil.toLowerCase()] || perfil;
                 const headerRole = document.getElementById('header-role');
                 if (headerRole) headerRole.textContent = label;
@@ -265,7 +289,10 @@
         // ─── Carrega dados do backend ─────────────────────────────────────────────
         async function carregarSubmissoes() {
             try {
-                const data = await apiGet('/admin/submissoes');
+                const [data, cursosList] = await Promise.all([
+                    apiGet('/admin/submissoes'),
+                    apiGet('/admin/cursos')
+                ]);
 
                 if (!data) {
                     exibirErro('Falha ao conectar com o servidor. Verifique se o backend está rodando.');
@@ -280,29 +307,40 @@
                 const contadores = data.contadores || {};
 
                 // ── KPIs ──
-                const pendentes  = parseInt(contadores.pendentes  || 0);
-                const aprovadas  = parseInt(contadores.aprovadas  || 0);
+                const pendentes = parseInt(contadores.pendentes || 0);
+                const aprovadas = parseInt(contadores.aprovadas || 0);
                 const reprovadas = parseInt(contadores.reprovadas || 0);
-                const total      = parseInt(contadores.total      || todasSubmissoes.length);
+                const total = parseInt(contadores.total || todasSubmissoes.length);
 
-                document.getElementById('kpi-pendentes').textContent  = pendentes;
-                document.getElementById('kpi-aprovadas').textContent  = aprovadas;
+                document.getElementById('kpi-pendentes').textContent = pendentes;
+                document.getElementById('kpi-aprovadas').textContent = aprovadas;
                 document.getElementById('kpi-reprovadas').textContent = reprovadas;
-                document.getElementById('kpi-total').textContent      = total;
+                document.getElementById('kpi-total').textContent = total;
 
                 const pct = total > 0 ? Math.round((reprovadas / total) * 100) : 0;
-                document.getElementById('kpi-reprovadas-pct').textContent = `${pct}% do total`;
-                document.getElementById('btn-filter-pendentes').textContent = `Pendentes (${pendentes})`;
+                const pctEl = document.getElementById('kpi-reprovadas-pct');
+                if (pctEl) pctEl.textContent = `${pct}% do total`;
+                
+                const btnPend = document.getElementById('btn-filter-pendentes');
+                if (btnPend) btnPend.textContent = `Pendentes (${pendentes})`;
 
-                // ── Popula select de cursos ──
-                const cursos = [...new Set(todasSubmissoes.map(s => s.course_name).filter(Boolean))].sort();
+                // ── Popula select de cursos (Lista Real) ──
                 const selectCurso = document.getElementById('filtro-curso');
-                cursos.forEach(c => {
-                    const opt = document.createElement('option');
-                    opt.value = c;
-                    opt.textContent = c;
-                    selectCurso.appendChild(opt);
-                });
+                if (selectCurso) {
+                    // Limpa opções exceto a primeira
+                    selectCurso.innerHTML = '<option value="">Todos os Cursos</option>';
+                    
+                    const cursosNomes = Array.isArray(cursosList) 
+                        ? cursosList.map(c => c.name).sort() 
+                        : [...new Set(todasSubmissoes.map(s => s.course_name).filter(Boolean))].sort();
+
+                    cursosNomes.forEach(c => {
+                        const opt = document.createElement('option');
+                        opt.value = c;
+                        opt.textContent = c;
+                        selectCurso.appendChild(opt);
+                    });
+                }
 
                 // ── Renderiza tabela inicial ──
                 renderizarTabela();
@@ -318,8 +356,13 @@
             let lista = [...todasSubmissoes];
 
             // Filtro de status
-            if (filtroAtual !== 'all') {
-                lista = lista.filter(s => (s.status || '').toLowerCase() === filtroAtual);
+            const statusFiltro = document.querySelector('.tabs-filter button.active')?.dataset.filter || 'all';
+            if (statusFiltro !== 'all') {
+                if (statusFiltro === 'submitted') {
+                    lista = lista.filter(s => ['submitted', 'returned_for_adjustment'].includes((s.status || '').toLowerCase()));
+                } else {
+                    lista = lista.filter(s => (s.status || '').toLowerCase() === statusFiltro.toLowerCase());
+                }
             }
 
             // Filtro de curso
@@ -329,12 +372,12 @@
             }
 
             // Busca por nome ou atividade
-            if (buscaAtual.trim()) {
-                const q = buscaAtual.toLowerCase();
+            const busca = (document.getElementById('input-busca')?.value || '').toLowerCase();
+            if (busca) {
                 lista = lista.filter(s =>
-                    (s.student_name || '').toLowerCase().includes(q) ||
-                    (s.title || '').toLowerCase().includes(q) ||
-                    (s.student_ra || '').toLowerCase().includes(q)
+                    (s.student_name || '').toLowerCase().includes(busca) ||
+                    (s.title || '').toLowerCase().includes(busca) ||
+                    (s.student_ra || '').toLowerCase().includes(busca)
                 );
             }
 
@@ -376,7 +419,7 @@
             tbody.innerHTML = paginados.map(s => {
                 const statusStr = (s.status || 'submitted').toLowerCase();
                 let badgeClass = 'status-pendente', badgeText = 'Pendente';
-                if (statusStr === 'approved')  { badgeClass = 'status-aprovado';  badgeText = 'Aprovado'; }
+                if (statusStr === 'approved') { badgeClass = 'status-aprovado'; badgeText = 'Aprovado'; }
                 if (statusStr === 'rejected' || statusStr === 'returned_for_adjustment') {
                     badgeClass = 'status-reprovado'; badgeText = 'Reprovado';
                 }
@@ -385,15 +428,15 @@
                 let catClass = 'badge-blue';
                 const catLow = catName.toLowerCase();
                 if (catLow.includes('evento') || catLow.includes('palestra')) catClass = 'badge-purple';
-                else if (catLow.includes('monitoria'))                         catClass = 'badge-orange';
+                else if (catLow.includes('monitoria')) catClass = 'badge-orange';
                 else if (catLow.includes('social') || catLow.includes('voluntariado')) catClass = 'badge-green';
-                else if (catLow.includes('extensao') || catLow.includes('extensão'))   catClass = 'badge-blue';
+                else if (catLow.includes('extensao') || catLow.includes('extensão')) catClass = 'badge-blue';
 
                 let dataEnvio = 'N/D';
                 if (s.submitted_at) {
                     const d = new Date(s.submitted_at);
-                    const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-                    dataEnvio = `${String(d.getDate()).padStart(2,'0')} ${meses[d.getMonth()]},<br>${d.getFullYear()}`;
+                    const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+                    dataEnvio = `${String(d.getDate()).padStart(2, '0')} ${meses[d.getMonth()]},<br>${d.getFullYear()}`;
                 }
 
                 const horas = s.approved_hours || s.horas_solicitadas || s.requested_hours || '—';
@@ -419,11 +462,6 @@
                         <td class="td-hours">${horas}h</td>
                         <td class="td-date">${dataEnvio}</td>
                         <td><span class="status-pill ${badgeClass}">${badgeText}</span></td>
-                        <td class="td-actions">
-                            <a href="analise_certificado.html?id=${s.id}" title="Ver detalhes" style="color:var(--texto-claro);">
-                                <i class='bx bx-dots-vertical-rounded'></i>
-                            </a>
-                        </td>
                     </tr>
                 `;
             }).join('');
@@ -509,9 +547,9 @@
         // ─── Exportar CSV ─────────────────────────────────────────────────────────
         function exportarCSV() {
             let lista = [...todasSubmissoes];
-            if (filtroAtual !== 'all') lista = lista.filter(s => (s.status||'').toLowerCase() === filtroAtual);
+            if (filtroAtual !== 'all') lista = lista.filter(s => (s.status || '').toLowerCase() === filtroAtual);
 
-            const cabecalho = ['Aluno','RA','Curso','Atividade','Categoria','Horas','Data Envio','Status'];
+            const cabecalho = ['Aluno', 'RA', 'Curso', 'Atividade', 'Categoria', 'Horas', 'Data Envio', 'Status'];
             const linhas = lista.map(s => {
                 const data = s.submitted_at ? new Date(s.submitted_at).toLocaleDateString('pt-BR') : '';
                 return [
@@ -523,15 +561,15 @@
                     s.approved_hours || s.horas_solicitadas || '',
                     data,
                     s.status || ''
-                ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(',');
+                ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(',');
             });
 
             const csv = [cabecalho.join(','), ...linhas].join('\n');
             const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-            const url  = URL.createObjectURL(blob);
+            const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `submissoes_${new Date().toISOString().slice(0,10)}.csv`;
+            link.download = `submissoes_${new Date().toISOString().slice(0, 10)}.csv`;
             link.click();
             URL.revokeObjectURL(url);
         }
@@ -540,11 +578,12 @@
         function exibirErro(msg) {
             const tbody = document.getElementById('tabela-submissoes');
             if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:32px;color:#ef4444;">${msg}</td></tr>`;
-            ['kpi-pendentes','kpi-aprovadas','kpi-reprovadas','kpi-total'].forEach(id => {
+            ['kpi-pendentes', 'kpi-aprovadas', 'kpi-reprovadas', 'kpi-total'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.textContent = '—';
             });
         }
     </script>
 </body>
+
 </html>

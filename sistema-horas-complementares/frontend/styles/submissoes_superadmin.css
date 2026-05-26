@@ -1,23 +1,10 @@
-:root {
-    --azul-senac: #004587;
-    --laranja-senac: #f6821f;
-    --texto-dark: #1e293b;
-    --texto-light: #64748b;
-    --bg-main: #f8fafc;
-    --bg-card: #ffffff;
-    --border-color: #e2e8f0;
-    
-    /* Status Colors */
-    --verde-sucesso: #10b981;
-    --laranja-alerta: #f59e0b;
-    --vermelho-erro: #ef4444;
-}
+
 
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Montserrat', -apple-system, sans-serif;
+    font-family: 'Outfit', 'Inter', -apple-system, sans-serif;
 }
 
 body {
@@ -39,92 +26,6 @@ body {
     background-color: #f8fafc;
 }
 
-/* Header (Custom for this page as per mockup) */
-.top-header {
-    background: white;
-    padding: 0 40px;
-    height: 70px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.top-header-left {
-    display: flex;
-    align-items: center;
-    gap: 30px;
-}
-
-.top-header-left h2 {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--azul-senac);
-}
-
-.search-wrap {
-    display: flex;
-    align-items: center;
-    background: #f1f5f9;
-    padding: 8px 15px;
-    border-radius: 8px;
-    width: 350px;
-}
-
-.search-wrap i {
-    color: var(--texto-light);
-    margin-right: 10px;
-}
-
-.search-wrap input {
-    border: none;
-    background: transparent;
-    outline: none;
-    font-size: 13px;
-    width: 100%;
-}
-
-.header-right {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.icon-header {
-    font-size: 22px;
-    color: var(--texto-light);
-    cursor: pointer;
-}
-
-.user-profile {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding-left: 20px;
-    border-left: 1px solid var(--border-color);
-}
-
-.user-profile .user-info {
-    text-align: right;
-}
-
-.user-profile strong {
-    display: block;
-    font-size: 13px;
-    color: var(--texto-dark);
-}
-
-.user-profile small {
-    font-size: 11px;
-    color: var(--texto-light);
-}
-
-.user-profile img {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    object-fit: cover;
-}
 
 /* Page Container */
 .page-container {
@@ -279,6 +180,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 20px;
 }
 
 .tabs-filter {
@@ -329,6 +231,41 @@ body {
     color: var(--texto-dark);
     outline: none;
     cursor: pointer;
+}
+
+/* Search Box in Table Filters */
+.search-box-table {
+    position: relative;
+    flex: 1;
+    max-width: 400px;
+}
+
+.search-box-table i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--texto-light);
+    font-size: 18px;
+}
+
+.search-box-table input {
+    width: 100%;
+    padding: 10px 15px 10px 45px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: #f8fafc;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--texto-dark);
+    outline: none;
+    transition: all 0.2s;
+}
+
+.search-box-table input:focus {
+    border-color: var(--azul-senac);
+    background: white;
+    box-shadow: 0 0 0 4px rgba(0, 69, 135, 0.05);
 }
 
 /* Table */
@@ -564,12 +501,13 @@ tr:last-child td {
     font-size: 24px;
     margin-bottom: 15px;
     font-weight: 700;
+    color: #ffffff !important;
 }
 
 .banner-content p {
     font-size: 13px;
     line-height: 1.6;
-    color: rgba(255,255,255,0.8);
+    color: #DBEAFE !important;
     margin-bottom: 25px;
 }
 
