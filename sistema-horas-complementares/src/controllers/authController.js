@@ -4,10 +4,15 @@ const jwt = require('jsonwebtoken');
 
 exports.login = async (req, res) => {
      console.log('Entrou no login');
-    const { email, senha } = req.body;
+    const { email, senha, password } = req.body;
+    const senhaFornecida = senha || password;
     console.log('Login tentativa:', email);
 
     try {
+        if (!email || !senhaFornecida) {
+            return res.status(400).json({ erro: "Email e senha são obrigatórios." });
+        }
+
         const resultado = await pool.query(
             `SELECT u.*, array_agg(r.name) AS roles
              FROM users u
@@ -24,7 +29,7 @@ exports.login = async (req, res) => {
             return res.status(401).json({ erro: "Email ou senha incorretos." });
         }
 
-        const senhaCorreta = await bcrypt.compare(senha, usuario.password_hash);
+        const senhaCorreta = await bcrypt.compare(senhaFornecida, usuario.password_hash);
         if (!senhaCorreta) {
             return res.status(401).json({ erro: "Email ou senha incorretos." });
         }
@@ -46,6 +51,14 @@ exports.login = async (req, res) => {
             { expiresIn: '8h' }
         );
 
+        const roleMap = {
+            'student': 'aluno',
+            'coordinator': 'coordenador',
+            'super_admin': 'superadmin'
+        };
+        const primaryRole = usuario.roles && usuario.roles.length > 0 ? usuario.roles[0] : 'aluno';
+        const role = roleMap[primaryRole] || primaryRole;
+
         res.status(200).json({
             mensagem: "Login realizado com sucesso!",
             token,
@@ -53,7 +66,13 @@ exports.login = async (req, res) => {
             nome: usuario.full_name,
             email: usuario.email,
             userId: usuario.id,
-            primeiroAcesso
+            primeiroAcesso,
+            user: {
+                id: usuario.id.toString(),
+                name: usuario.full_name,
+                email: usuario.email,
+                role: role
+            }
         });
 
     } catch (err) {
