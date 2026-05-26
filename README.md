@@ -1,79 +1,149 @@
-# 🎓 Portal de Atividades Complementares (SENAC)
+# 🎓 Portal de Atividades Complementares (Faculdades SENAC)
 
-Este repositório contém a solução completa para o gerenciamento de atividades complementares acadêmicas das Faculdades SENAC. O sistema permite que alunos enviem comprovantes pelo celular, coordenadores analisem submissões e administradores configurem cursos e limites de horas.
+Sistema completo (API Backend, Painel Web Admin e Aplicativo Mobile) desenvolvido para digitalizar e automatizar o processo de gestão de atividades complementares acadêmicas do SENAC, eliminando o uso de planilhas manuais e e-mails descentralizados.
 
 ---
 
 ## 📂 Estrutura do Repositório
 
-O projeto é dividido em dois módulos principais:
+O projeto é estruturado em duas partes principais:
 
 ```text
 mobile/ (Raiz do repositório)
-├── sistema-horas-complementares/   → Backend (Node.js/Express) + Painel Web Admin (HTML/CSS/JS)
-│   ├── src/                        → Código-fonte da API Express
-│   ├── frontend/                   → Dashboard Web para Administradores e Coordenadores
-│   ├── schema.sql                  → Estrutura do banco de dados PostgreSQL
-│   └── data_insert.sql             → Script para popular banco com dados de teste
-│
+├── README.md                       → Este arquivo unificado de documentação
+├── sistema-horas-complementares/   → API Backend (Node/Express) + Painel Web Admin (HTML/CSS/JS)
 └── aaa/
-    └── Sistema-de-horas-mobile/    → Cliente Mobile (React Native + Expo SDK 54 + TypeScript)
+    └── Sistema-de-horas-mobile/    → Aplicativo Mobile (React Native + Expo SDK 54)
 ```
 
 ---
 
 ## 🌐 Endereços e Acessos em Produção (Web)
 
-O sistema está 100% configurado e hospedado na nuvem:
+O servidor e banco de dados estão hospedados e ativos na internet:
 
 *   **API & Painel Administrativo Web (Render):**
     👉 [https://sistema-horas-api.onrender.com/pages/index.html](https://sistema-horas-api.onrender.com/pages/index.html)
-*   **Banco de Dados (Neon PostgreSQL):** Hospedado de forma segura na nuvem Neon e conectado ao servidor.
-*   **Aplicativo Mobile (Vercel):** Hospedado como uma aplicação web (PWA) no painel da Vercel.
+*   **Banco de Dados (Neon PostgreSQL):** Conectado ao servidor através de canal SSL seguro.
 
-### 🔑 Conta Administrativa de Teste:
-*   **E-mail:** `admin@senac.com`
-*   **Senha:** `123456`
-*   **Perfil:** SUPER ADM
-
----
-
-## 🚀 Como Rodar Localmente
-
-### 1. Backend e Painel Web Admin
-Entre na pasta correspondente, configure o arquivo `.env` e inicie o servidor:
-```bash
-cd sistema-horas-complementares
-npm install
-npm run dev
-```
-O backend rodará em `http://localhost:3001` e a interface administrativa local estará disponível em `http://localhost:3001/pages/index.html`.
-
-### 2. Aplicativo Mobile (Expo)
-Entre na pasta do aplicativo mobile, instale as dependências e inicie o Metro Bundler:
-```bash
-cd aaa/Sistema-de-horas-mobile
-npm install
-npm start
-```
-Escaneie o QR Code gerado utilizando o aplicativo **Expo Go** no seu celular para testar.
+### 🔑 Contas Administrativas / Testes:
+*   **Super Admin:** `admin@senac.com` | Senha: `123456`
+*   **Coordenador:** `ricardo@senac.com` | Senha: `123456`
+*   **Aluno (Lucas):** `lucas@aluno.senac.com` | Senha: `123456`
 
 ---
 
-## 🛠️ Detalhes da Configuração de Deploy
+## 🖥️ Módulo 1: Backend e Painel Web Admin (`sistema-horas-complementares`)
 
-### Banco de Dados (Neon.tech)
-O banco foi configurado importando a estrutura do arquivo `schema.sql` e, posteriormente, populado com dados iniciais através do `data_insert.sql`. As conexões utilizam o protocolo seguro SSL habilitado automaticamente em produção.
+O backend é um servidor robusto que gerencia a lógica de negócios, banco de dados, autenticação de usuários, uploads e notificações por e-mail. Ele também serve estaticamente o painel web admin para coordenadores e o super administrador.
 
-### Servidor (Render.com)
-Hospedado conectando este repositório do GitHub com as seguintes definições:
+### Tecnologias Utilizadas
+*   **Servidor:** Node.js + Express
+*   **Banco de Dados:** PostgreSQL (módulo `pg`)
+*   **Autenticação:** JWT (JSON Web Token) e Criptografia `bcryptjs`
+*   **Upload de Arquivos:** Multer
+*   **E-mails:** Nodemailer
+
+### Como Configurar e Rodar Localmente
+1. Acesse o diretório do backend:
+   ```bash
+   cd sistema-horas-complementares
+   ```
+2. Instale as dependências:
+   ```bash
+   npm install
+   ```
+3. Crie e configure o arquivo `.env` com suas credenciais locais:
+   ```env
+   PORT=3001
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_NAME=atividades_complementares_senac
+   DB_USER=postgres
+   DB_PASSWORD=sua_senha
+   JWT_SECRET=minha_chave_secreta_longa
+   ```
+4. Configure o banco de dados local executando o arquivo `schema.sql`. Opcionalmente, execute `data_insert.sql` para preencher com dados de teste.
+5. Inicie o servidor em modo de desenvolvimento:
+   ```bash
+   npm run dev
+   ```
+   Acesse a interface administrativa local em: `http://localhost:3001/pages/index.html`
+
+### Estrutura de Rotas da API
+*   **Autenticação (`/auth`):**
+    *   `POST /auth/login` - Efetua o login de usuários (todos os perfis).
+    *   `POST /auth/setup` - Inicializa o primeiro Super Admin do sistema.
+*   **Super Admin (`/admin`):**
+    *   `GET /admin/cursos` / `POST /admin/curso` - Gerencia os cursos da instituição.
+    *   `GET /admin/coordenadores` / `POST /admin/coordenador` - Gerencia o cadastro de coordenadores.
+*   **Coordenador (`/coordenador`):**
+    *   `POST /coordenador/aluno` - Cadastra alunos no curso.
+    *   `GET /coordenador/alunos/:curso_id` - Lista alunos vinculados ao curso.
+    *   `GET /coordenador/submissoes/:curso_id` - Lista submissões pendentes de validação.
+    *   `PATCH /coordenador/validar/:id` - Aprova, reprova ou devolve submissões para ajuste.
+    *   `POST /coordenador/regras` - Cria regras de limites de horas por categoria para um curso.
+*   **Aluno (`/aluno`):**
+    *   `POST /aluno/submeter` - Envia uma atividade complementar com certificado em anexo.
+    *   `GET /aluno/minhas-submissoes` - Histórico de atividades enviadas pelo aluno.
+    *   `GET /aluno/resumo-horas` - Gráficos e progresso de horas integralizadas por categoria.
+
+---
+
+## 📱 Módulo 2: Aplicativo Mobile (`aaa/Sistema-de-horas-mobile`)
+
+O aplicativo móvel é o canal exclusivo do aluno para solicitar validação de horas, enviar imagens/PDFs de certificados e acompanhar o andamento dos processos direto do smartphone.
+
+### Tecnologias Utilizadas
+*   **Framework:** React Native + Expo (SDK 54) + TypeScript
+*   **Navegação:** React Navigation (Native Stack)
+*   **Comunicação API:** Axios (com interceptores para anexar o token de autenticação)
+*   **Armazenamento Local:** AsyncStorage (persistência de sessão de login)
+
+### Telas Implementadas
+1.  **Boas-vindas (`WelcomeScreen`):** Apresentação visual, logo e botão inicial.
+2.  **Primeiro Acesso (`FirstAccessScreen`):** Tela para registro de novos alunos.
+3.  **Login (`LoginScreen`):** Autenticação com e-mail/CPF e senha.
+4.  **Painel Principal (`DashboardScreen`):** Progresso geral de horas complementares em formato de barra de progresso gráfica.
+5.  **Enviar Atividade (`SubmitHoursScreen`):** Formulário de envio de comprovantes, seleção de categoria, cálculo automático e anexo de documentos.
+6.  **Perfil (`ProfileScreen`):** Dados cadastrais do aluno e opção de logout.
+
+### Como Rodar o Aplicativo Mobile
+1. Acesse o diretório do aplicativo:
+   ```bash
+   cd aaa/Sistema-de-horas-mobile
+   ```
+2. Instale as dependências:
+   ```bash
+   npm install
+   ```
+3. Garanta que o aplicativo aponta para o servidor correto no arquivo `src/constants/index.ts`:
+   *   **Para rodar localmente:** configure com o IP local da sua máquina (ex: `http://192.168.x.x:3001`).
+   *   **Para rodar apontando para a nuvem:** configure com a URL do Render:
+       ```typescript
+       export const API_BASE_URL = 'https://sistema-horas-api.onrender.com';
+       ```
+4. Inicie o Metro Bundler do Expo:
+   ```bash
+   npm start
+   ```
+5. Abra o aplicativo **Expo Go** no seu celular (Android ou iOS) e escaneie o código QR gerado no terminal para carregar o aplicativo.
+   *   *Para rodar no emulador de computador:* pressione `a` para emulador Android ou `i` para simulador iOS.
+
+---
+
+## ⚙️ Detalhes da Configuração na Nuvem (Deploy)
+
+### Hospedagem do Banco de Dados (Neon.tech)
+Hospedado no Neon (PostgreSQL na nuvem). 
+*   **Estrutura (schema.sql):** Configurado a partir de dados em série (`BIGSERIAL`), gerindo o autoincremento e os relacionamentos de chaves estrangeiras automaticamente.
+*   **Dados Iniciais (data_insert.sql):** Popula a estrutura com perfis (`super_admin`, `coordinator`, `student`), cursos, categorias e submissões padrão de teste.
+
+### Hospedagem da API + Web Frontend (Render.com)
+Hospedado de forma integrada:
 *   **Root Directory:** `sistema-horas-complementares`
 *   **Build Command:** `npm install`
 *   **Start Command:** `node src/server.js`
-*   **Variaveis de ambiente:** `DATABASE_URL` (conexão do Neon) e `JWT_SECRET` (token de segurança).
-
-### Aplicativo Mobile na Web (Vercel)
-Configurado a partir do Expo Web para rodar direto no navegador:
-*   **Root Directory:** `aaa/Sistema-de-horas-mobile`
-*   **Build Command:** `npx expo export --platform web`
-*   **Output Directory:** `dist`
+*   **Environment Variables:**
+    *   `DATABASE_URL`: String de conexão fornecida pelo Neon com o parâmetro `?sslmode=require` anexado.
+    *   `JWT_SECRET`: Senha utilizada pelo servidor para encriptar e validar as assinaturas dos tokens de login.
