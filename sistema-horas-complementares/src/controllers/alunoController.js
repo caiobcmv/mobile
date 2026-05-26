@@ -89,16 +89,16 @@ exports.postSubmeterAtividade = async (req, res) => {
             JOIN users u ON u.id = cc.user_id
             WHERE cc.course_id = $1 AND cc.is_active = true`,
             [course_id]
-         );
+        );
 
         for (const coord of coordenadores.rows) {
             await emailNovaSubmissao(coord.email, title);
 
-           await pool.query(
+            await pool.query(
                 `INSERT INTO notifications (user_id, submission_id, type, title, message)
                 VALUES ($1, $2, 'submission_created', $3, $4)`,
                 [
-                    coord.id,  
+                    coord.id,
                     submissao.id,
                     `Nova submissão: ${title}`,
                     `O aluno submeteu uma nova atividade para avaliação.`
