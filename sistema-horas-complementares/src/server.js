@@ -26,6 +26,32 @@ app.use('/aluno', rotasAluno);
 app.use('/dashboard', rotasDashboard);
 app.use('/upload', rotasUpload);
 
+app.get('/debug-db', async (req, res) => {
+    const pool = require('./config/database');
+    try {
+        const resultado = await pool.query('SELECT NOW()');
+        res.json({
+            status: 'success',
+            time: resultado.rows[0],
+            env: {
+                DATABASE_URL_SET: !!process.env.DATABASE_URL,
+                JWT_SECRET_SET: !!process.env.JWT_SECRET,
+            }
+        });
+    } catch (err) {
+        res.status(500).json({
+            status: 'error',
+            message: err.message,
+            stack: err.stack,
+            errorDetails: err,
+            env: {
+                DATABASE_URL_SET: !!process.env.DATABASE_URL,
+                JWT_SECRET_SET: !!process.env.JWT_SECRET,
+            }
+        });
+    }
+});
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '..', '..', 'frontend','pages' ,'index.html'));
 });
