@@ -32,6 +32,7 @@ app.get('/debug-db', async (req, res) => {
         const resultado = await pool.query('SELECT NOW()');
         res.json({
             status: 'success',
+            version: 'v1.0.2',
             time: resultado.rows[0],
             env: {
                 DATABASE_URL_SET: !!process.env.DATABASE_URL,
