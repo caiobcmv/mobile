@@ -58,6 +58,7 @@ const styles = StyleSheet.create({
     right: 0,
     height: WAVE_HEIGHT,
     zIndex: 0,
+    overflow: 'hidden',
   },
   containerBottom: {
     position: 'absolute',
@@ -66,6 +67,7 @@ const styles = StyleSheet.create({
     right: 0,
     height: WAVE_HEIGHT,
     zIndex: 0,
+    overflow: 'hidden',
   },
   wave: {
     position: 'absolute',
