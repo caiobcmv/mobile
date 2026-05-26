@@ -17,6 +17,10 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    const selectedCourseId = await AsyncStorage.getItem(STORAGE_KEYS.SELECTED_COURSE_ID);
+    if (selectedCourseId) {
+      config.headers['x-course-id'] = selectedCourseId;
+    }
     return config;
   },
   (error) => Promise.reject(error),

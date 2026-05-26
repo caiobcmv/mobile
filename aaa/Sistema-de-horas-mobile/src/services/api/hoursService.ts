@@ -59,6 +59,8 @@ export const hoursService = {
 
   getMeusDados: () => api.get<MeusDadosResponse>('/aluno/meus-dados'),
 
+  getCursos: () => api.get<any[]>('/aluno/cursos'),
+
   uploadFile: (submissionId: string, fileUri: string, fileName: string, fileMimeType: string) => {
     const formData = new FormData();
     formData.append('certificado', {

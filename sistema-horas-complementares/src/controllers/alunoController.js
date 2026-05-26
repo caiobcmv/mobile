@@ -213,7 +213,8 @@ exports.deleteSubmissao = async (req, res) => {
 
 exports.getMinhasSubmissoes = async (req, res) => {
     const user_id = req.usuario.id;
-    const { status, course_id, page, limit } = req.query;
+    const { status, page, limit } = req.query;
+    const course_id = req.query.course_id || req.headers['x-course-id'];
 
     try {
         let params = [user_id];
@@ -226,7 +227,7 @@ exports.getMinhasSubmissoes = async (req, res) => {
 
         if (course_id) {
             filtros += ` AND uc.course_id = $${params.length + 1}`;
-            params.push(course_id);
+            params.push(parseInt(course_id));
         }
 
         // Se `page` for fornecido, aplicamos paginação
@@ -303,18 +304,22 @@ exports.getMinhasSubmissoes = async (req, res) => {
 
 exports.getResumoHoras = async (req, res) => {
     const user_id = req.usuario.id;
+    const courseIdHeader = req.headers['x-course-id'];
     try {
-        
-        const userCourse = await pool.query(
-            `SELECT uc.course_id, c.name as course_name, c.minimum_required_hours
+        let queryStr = `SELECT uc.course_id, c.name as course_name, c.minimum_required_hours
              FROM user_courses uc
              JOIN courses c ON c.id = uc.course_id
-             WHERE uc.user_id = $1 AND uc.is_active = true`,
-            [user_id]
-        );
+             WHERE uc.user_id = $1 AND uc.is_active = true`;
+        let queryParams = [user_id];
+        if (courseIdHeader) {
+            queryStr += ` AND uc.course_id = $2`;
+            queryParams.push(parseInt(courseIdHeader));
+        }
+        
+        const userCourse = await pool.query(queryStr, queryParams);
 
         if (userCourse.rows.length === 0) {
-            return res.status(404).json({ erro: "Aluno não vinculado a nenhum curso ativo." });
+            return res.status(404).json({ erro: "Aluno não vinculado a este curso ativo." });
         }
 
         const { course_id, minimum_required_hours } = userCourse.rows[0];
@@ -382,26 +387,34 @@ exports.getResumoHoras = async (req, res) => {
 
 exports.getMeusDados = async (req, res) => {
     const user_id = req.usuario.id;
+    const courseIdHeader = req.headers['x-course-id'];
     try {
-        const aluno = await pool.query(
-            `SELECT u.full_name as nome, u.email, c.name as curso_nome
+        let alunoQuery = `SELECT u.full_name as nome, u.email, c.name as curso_nome
              FROM users u
              JOIN user_courses uc ON uc.user_id = u.id
              JOIN courses c ON c.id = uc.course_id
-             WHERE u.id = $1 AND uc.is_active = true`,
-            [user_id]
-        );
-
-        const stats = await pool.query(
-            `SELECT 
+             WHERE u.id = $1 AND uc.is_active = true`;
+        let alunoParams = [user_id];
+        
+        let statsQuery = `SELECT 
                 COUNT(*) as total_submissoes,
                 COUNT(*) FILTER (WHERE status NOT IN ('approved', 'rejected')) as pendentes,
                 SUM(approved_hours) as horas_aprovadas
              FROM submissions s
              JOIN user_courses uc ON uc.id = s.user_course_id
-             WHERE uc.user_id = $1`,
-            [user_id]
-        );
+             WHERE uc.user_id = $1`;
+        let statsParams = [user_id];
+
+        if (courseIdHeader) {
+            alunoQuery += ` AND uc.course_id = $2`;
+            alunoParams.push(parseInt(courseIdHeader));
+            
+            statsQuery += ` AND uc.course_id = $2`;
+            statsParams.push(parseInt(courseIdHeader));
+        }
+
+        const aluno = await pool.query(alunoQuery, alunoParams);
+        const stats = await pool.query(statsQuery, statsParams);
 
         res.status(200).json({
             aluno: aluno.rows[0],
@@ -409,6 +422,29 @@ exports.getMeusDados = async (req, res) => {
             pendentes: parseInt(stats.rows[0].pendentes) || 0,
             horas_aprovadas: parseFloat(stats.rows[0].horas_aprovadas) || 0
         });
+    } catch (err) {
+        res.status(500).json({ erro: err.message });
+    }
+};
+
+exports.getMeusCursos = async (req, res) => {
+    const user_id = req.usuario.id;
+    try {
+        const resultado = await pool.query(
+            `SELECT 
+                c.id, 
+                c.name, 
+                c.description, 
+                c.modalidade, 
+                c.turno, 
+                c.semestres,
+                uc.status_matricula
+             FROM user_courses uc
+             JOIN courses c ON c.id = uc.course_id
+             WHERE uc.user_id = $1 AND uc.is_active = true AND c.is_active = true`,
+            [user_id]
+        );
+        res.status(200).json(resultado.rows);
     } catch (err) {
         res.status(500).json({ erro: err.message });
     }

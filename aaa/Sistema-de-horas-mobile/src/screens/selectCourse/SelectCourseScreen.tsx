@@ -1,13 +1,6 @@
-/**
- * SelectCourseScreen.tsx
- *
- * Exibida logo após o login.
- * O aluno escolhe em qual curso (matrícula ativa) deseja entrar.
- *
- * Layout baseado no design "Selecione seu curso" do Senac Acadêmico.
- */
 
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,10 +10,14 @@ import {
   StyleSheet,
   StatusBar,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { STORAGE_KEYS } from '../../constants';
+import { hoursService } from '../../services/api/hoursService';
 import { RootStackParamList } from '../../types';
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
@@ -36,29 +33,31 @@ interface Course {
   image: any;
 }
 
-// ─── Dados mock (substituir por API) ─────────────────────────────────────────
-const MOCK_COURSES: Course[] = [
-  {
-    id: '1',
-    name: 'Análise e desenvolv. de sistemas',
-    unit: 'Unidade De Santo Amaro',
-    module: '4º Módulo',
-    modality: 'Presencial',
-    status: 'Ativo',
-    image: require('../../assets/images/course_tech.png'),
-  },
-  {
-    id: '2',
-    name: 'Design De Interiores',
-    unit: 'Unidade Digital Nacional',
-    module: '2º Módulo',
-    modality: 'EAD',
-    status: 'Ativo',
-    image: require('../../assets/images/course_design.png'),
-  },
-];
+// ─── Helpers para mapeamento ──────────────────────────────────────────────────
+const mapStatus = (statusMatricula: string): 'Ativo' | 'Concluído' | 'Suspenso' => {
+  if (!statusMatricula) return 'Ativo';
+  const status = statusMatricula.toLowerCase();
+  if (status === 'ativo' || status === 'active') return 'Ativo';
+  if (status === 'concluido' || status === 'completed') return 'Concluído';
+  return 'Suspenso';
+};
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+const mapModality = (modalidade: string): 'Presencial' | 'EAD' | 'Híbrido' => {
+  if (!modalidade) return 'Presencial';
+  const mod = modalidade.toLowerCase();
+  if (mod.includes('ead') || mod.includes('distancia') || mod.includes('distância')) return 'EAD';
+  if (mod.includes('hibrid') || mod.includes('híbrid')) return 'Híbrido';
+  return 'Presencial';
+};
+
+const getCourseImage = (name: string) => {
+  const lowercaseName = name.toLowerCase();
+  if (lowercaseName.includes('design') || lowercaseName.includes('interiores') || lowercaseName.includes('moda') || lowercaseName.includes('arte')) {
+    return require('../../assets/images/course_design.png');
+  }
+  return require('../../assets/images/course_tech.png');
+};
+
 const getModalityIcon = (modality: Course['modality']) => {
   if (modality === 'EAD') return 'desktop-outline';
   if (modality === 'Híbrido') return 'business-outline';
@@ -117,12 +116,50 @@ function CourseCard({ course, onPress }: { course: Course; onPress: () => void }
 
 // ─── Tela principal ───────────────────────────────────────────────────────────
 export default function SelectCourseScreen({ navigation }: Props) {
+  const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const handleSelectCourse = (course: Course) => {
+  useEffect(() => {
+    let isMounted = true;
+    hoursService.getCursos()
+      .then(({ data }) => {
+        if (isMounted) {
+          const mappedCourses = data.map((c: any) => ({
+            id: String(c.id),
+            name: c.name || 'Sem nome',
+            unit: c.turno ? `Turno: ${c.turno}` : 'Unidade Senac',
+            module: c.semestres ? `${c.semestres} Semestres` : 'Módulo Geral',
+            modality: mapModality(c.modalidade),
+            status: mapStatus(c.status_matricula),
+            image: getCourseImage(c.name || ''),
+          }));
+          setCourses(mappedCourses);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error('Erro ao buscar cursos do aluno:', err);
+        if (isMounted) {
+          Alert.alert('Erro', 'Não foi possível carregar seus cursos.');
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleSelectCourse = async (course: Course) => {
     setSelectedCourseId(course.id);
-    // TODO: salvar curso selecionado no contexto/storage e navegar pro Dashboard
-    navigation.navigate('Dashboard');
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.SELECTED_COURSE_ID, course.id);
+      navigation.navigate('Dashboard');
+    } catch (err) {
+      console.error('Erro ao salvar curso ativo:', err);
+      Alert.alert('Erro', 'Não foi possível selecionar o curso.');
+    }
   };
 
   const handleCatalog = () => {
@@ -147,52 +184,65 @@ export default function SelectCourseScreen({ navigation }: Props) {
         </View>
       </View>
 
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Título da seção */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Selecione seu curso</Text>
-          <Text style={styles.sectionSubtitle}>
-            Escolha uma das suas matrículas ativas para{'\n'}acessar o ambiente de aprendizagem.
-          </Text>
+      {loading ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F7F8FA' }}>
+          <ActivityIndicator size="large" color="#1B3A6B" />
+          <Text style={{ marginTop: 12, color: '#6B7280', fontSize: 15 }}>Carregando seus cursos...</Text>
         </View>
-
-        {/* Lista de cursos */}
-        {MOCK_COURSES.map((course) => (
-          <CourseCard
-            key={course.id}
-            course={course}
-            onPress={() => handleSelectCourse(course)}
-          />
-        ))}
-
-        {/* Card de Novas Oportunidades */}
-        <View style={styles.opportunitiesCard}>
-          <View style={styles.plusCircle}>
-            <Ionicons name="add" size={28} color="#9CA3AF" />
+      ) : (
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Título da seção */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Selecione seu curso</Text>
+            <Text style={styles.sectionSubtitle}>
+              Escolha uma das suas matrículas ativas para{'\n'}acessar o ambiente de aprendizagem.
+            </Text>
           </View>
-          <Text style={styles.opportunitiesTitle}>Novas Oportunidades</Text>
-          <Text style={styles.opportunitiesSubtitle}>
-            Explore novos cursos e expanda suas{'\n'}habilidades profissionais.
-          </Text>
-          <TouchableOpacity style={styles.catalogButton} onPress={handleCatalog} activeOpacity={0.8}>
-            <Text style={styles.catalogButtonText}>Ver Catálogo</Text>
-          </TouchableOpacity>
-        </View>
 
-        {/* Banner de aviso */}
-        <View style={styles.warningBanner}>
-          <Ionicons name="information-circle-outline" size={20} color="#3B82F6" style={styles.warningIcon} />
-          <Text style={styles.warningText}>
-            Não encontrou seu curso? Verifique se sua matrícula foi confirmada ou entre em contato com a secretaria da sua unidade.
-          </Text>
-        </View>
+          {/* Lista de cursos */}
+          {courses.map((course) => (
+            <CourseCard
+              key={course.id}
+              course={course}
+              onPress={() => handleSelectCourse(course)}
+            />
+          ))}
 
-        <View style={{ height: 32 }} />
-      </ScrollView>
+          {courses.length === 0 && (
+            <View style={{ paddingVertical: 20, alignItems: 'center' }}>
+              <Text style={{ color: '#6B7280', fontStyle: 'italic' }}>Nenhum curso ativo encontrado.</Text>
+            </View>
+          )}
+
+          {/* Card de Novas Oportunidades */}
+          <View style={styles.opportunitiesCard}>
+            <View style={styles.plusCircle}>
+              <Ionicons name="add" size={28} color="#9CA3AF" />
+            </View>
+            <Text style={styles.opportunitiesTitle}>Novas Oportunidades</Text>
+            <Text style={styles.opportunitiesSubtitle}>
+              Explore novos cursos e expanda suas{'\n'}habilidades profissionais.
+            </Text>
+            <TouchableOpacity style={styles.catalogButton} onPress={handleCatalog} activeOpacity={0.8}>
+              <Text style={styles.catalogButtonText}>Ver Catálogo</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Banner de aviso */}
+          <View style={styles.warningBanner}>
+            <Ionicons name="information-circle-outline" size={20} color="#3B82F6" style={styles.warningIcon} />
+            <Text style={styles.warningText}>
+              Não encontrou seu curso? Verifique se sua matrícula foi confirmada ou entre em contato com a secretaria da sua unidade.
+            </Text>
+          </View>
+
+          <View style={{ height: 32 }} />
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }

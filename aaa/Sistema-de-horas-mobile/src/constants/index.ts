@@ -7,6 +7,7 @@ export const STORAGE_KEYS = {
   TOKEN: '@sistema_horas:token',
   USER: '@sistema_horas:user',
   THEME: '@sistema_horas:theme',
+  SELECTED_COURSE_ID: '@sistema_horas:selected_course_id',
 } as const;
 
 // ─── Categorias de horas ──────────────────────────────────────────────────────
