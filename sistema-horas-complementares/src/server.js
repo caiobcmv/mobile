@@ -30,10 +30,12 @@ app.get('/debug-db', async (req, res) => {
     const pool = require('./config/database');
     try {
         const resultado = await pool.query('SELECT NOW()');
+        const usersCount = await pool.query('SELECT COUNT(*) FROM users');
         res.json({
             status: 'success',
-            version: 'v1.0.2',
+            version: 'v1.0.3',
             time: resultado.rows[0],
+            usersCount: usersCount.rows[0].count,
             env: {
                 DATABASE_URL_SET: !!process.env.DATABASE_URL,
                 JWT_SECRET_SET: !!process.env.JWT_SECRET,
