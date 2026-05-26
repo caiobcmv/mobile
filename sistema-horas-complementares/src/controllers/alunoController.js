@@ -354,6 +354,7 @@ exports.getResumoHoras = async (req, res) => {
         const limites = regras.rows.map(regra => {
             const horasAprovadas = aprovadasMap[regra.category_id] || 0;
             return {
+                category_id: regra.category_id,
                 categoria: regra.category_name,
                 min_horas: regra.min_hours,
                 max_horas: regra.max_hours,

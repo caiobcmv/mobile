@@ -33,7 +33,7 @@ app.get('/debug-db', async (req, res) => {
         const usersCount = await pool.query('SELECT COUNT(*) FROM users');
         res.json({
             status: 'success',
-            version: 'v1.0.3',
+            version: 'v1.0.4',
             time: resultado.rows[0],
             usersCount: usersCount.rows[0].count,
             env: {
