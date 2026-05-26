@@ -102,7 +102,8 @@ DB_PASSWORD=sua_senha
 JWT_SECRET=sua_chave_secreta
 ```
 
-### 4. Criar o banco de dados (Banco está no repositório banco_atividades_complementares)
+### 4. Criar o banco de dados
+Rode o script `schema.sql` no seu banco de dados local. Você também pode rodar `data_insert.sql` para popular com os dados de teste locais.
 
 ### 5. Iniciar o servidor
 ```bash
@@ -110,6 +111,33 @@ npm run dev
 ```
 
 Acesse: **http://localhost:3001**
+
+---
+
+## Hospedagem na Web (Deploy)
+
+O projeto está configurado para deploy em produção utilizando serviços gratuitos:
+
+### 1. Banco de Dados (PostgreSQL) — Neon.tech
+1. Crie uma conta no **[Neon.tech](https://neon.tech/)** e um projeto.
+2. Copie a URL de conexão (`postgresql://...`).
+3. No painel do Neon, abra o **SQL Editor**, cole o conteúdo de `schema.sql` e execute para criar as tabelas.
+4. Para popular com dados de teste locais, cole e execute o conteúdo de `data_insert.sql`.
+
+### 2. Backend + Frontend (Express) — Render.com
+1. Crie uma conta no **[Render.com](https://render.com/)** e conecte seu GitHub.
+2. Crie um novo **Web Service** conectado ao seu repositório.
+3. Configure os campos:
+   - **Root Directory**: `sistema-horas-complementares`
+   - **Build Command**: `npm install`
+   - **Start Command**: `node src/server.js`
+4. Em **Advanced**, adicione as variáveis de ambiente:
+   - `DATABASE_URL` = *(A URL do Neon)*
+   - `JWT_SECRET` = *(Sua chave secreta para tokens JWT)*
+5. Conclua o deploy. O Render servirá a API e o painel web admin (na URL gerada `/pages/index.html`).
+
+### 3. Aplicativo Mobile (Expo)
+1. Atualize o arquivo `aaa/Sistema-de-horas-mobile/src/constants/index.ts` alterando `API_BASE_URL` para a URL gerada pelo Render.
 
 ---
 
@@ -158,7 +186,7 @@ Acesse: **http://localhost:3001**
 - [x] Filtros e paginação nas submissões
 
 ## Em Desenvolvimento
-- [ ] Frontend conectado ao backend 
+- [x] Frontend conectado ao backend 
 - [ ] OCR para leitura de certificados 
 
 ---
