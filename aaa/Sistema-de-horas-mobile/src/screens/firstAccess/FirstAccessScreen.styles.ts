@@ -176,4 +176,48 @@ export const styles = StyleSheet.create({
     color: '#E87722',           // laranja Senac
     fontWeight: '600',
   },
+
+  // ─── Step 2 (Processo Concluído) ──────────────────────────────────────
+  checkmarkCircle: {
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    backgroundColor: '#1B3D6D',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    marginTop: 20,
+    marginBottom: 16,
+    shadowColor: '#1B3D6D',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+
+  successHeader: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#E87722',
+    textAlign: 'center',
+    letterSpacing: 1.5,
+    marginBottom: 4,
+  },
+
+  successTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#1B3D6D',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+
+  successDescription: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 20,
+    paddingHorizontal: 12,
+    marginBottom: 28,
+  },
 });

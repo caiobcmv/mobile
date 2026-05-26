@@ -118,20 +118,42 @@ function InputField({
 
 // ── FirstAccessScreen ────────────────────────────────────────────────────────
 export default function FirstAccessScreen({ navigation }: Props) {
+  const [step, setStep] = useState<1 | 2>(1);
   const [nome, setNome] = useState('');
   const [matricula, setMatricula] = useState('');
   const [senha, setSenha] = useState('');
 
+  const [novaSenha, setNovaSenha] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
+
   const [nomeFocused, setNomeFocused] = useState(false);
   const [matriculaFocused, setMatriculaFocused] = useState(false);
   const [senhaFocused, setSenhaFocused] = useState(false);
+
+  const [novaSenhaFocused, setNovaSenhaFocused] = useState(false);
+  const [confirmarSenhaFocused, setConfirmarSenhaFocused] = useState(false);
+
   const [loading, setLoading] = useState(false);
 
   const handleEntrar = async () => {
     if (!nome || !matricula || !senha) return;
+    setStep(2);
+  };
+
+  const handleFinalize = async () => {
+    if (!novaSenha || !confirmarSenha) return;
+    if (novaSenha !== confirmarSenha) {
+      alert("As senhas não coincidem!");
+      return;
+    }
+    if (novaSenha.length < 6) {
+      alert("A senha deve conter no mínimo 6 caracteres.");
+      return;
+    }
+
     setLoading(true);
     try {
-      // TODO: chamar API de criação de conta / primeiro acesso
+      // Simula finalização
       navigation.navigate('Login');
     } catch (err) {
       console.error('Erro:', err);
@@ -154,77 +176,138 @@ export default function FirstAccessScreen({ navigation }: Props) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.logoArea}>
-            <SenacLogo />
-          </View>
+          {/* Logo Area (escondida no passo 2 para focar no ícone de concluído) */}
+          {step === 1 && (
+            <View style={styles.logoArea}>
+              <SenacLogo />
+            </View>
+          )}
 
           <View style={styles.content}>
-            {/* Avatar + Título */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-              <AvatarPlaceholder />
-              <View style={{ marginLeft: 14 }}>
-                <Text style={styles.title}>Primeiro acesso</Text>
-                <Text style={styles.subtitle}>Crie uma conta</Text>
+            {step === 1 && (
+              <View>
+                {/* Avatar + Título */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                  <AvatarPlaceholder />
+                  <View style={{ marginLeft: 14 }}>
+                    <Text style={styles.title}>Primeiro acesso</Text>
+                    <Text style={styles.subtitle}>Crie uma conta</Text>
+                  </View>
+                </View>
+
+                <InputField
+                  label="Nome"
+                  iconName="person-outline"
+                  placeholder="João Pereira"
+                  value={nome}
+                  onChangeText={setNome}
+                  isFocused={nomeFocused}
+                  onFocus={() => setNomeFocused(true)}
+                  onBlur={() => setNomeFocused(false)}
+                />
+
+                <InputField
+                  label="Matrícula ou E-mail"
+                  iconName="person-outline"
+                  placeholder="0020015786"
+                  value={matricula}
+                  onChangeText={setMatricula}
+                  isFocused={matriculaFocused}
+                  onFocus={() => setMatriculaFocused(true)}
+                  onBlur={() => setMatriculaFocused(false)}
+                />
+
+                <InputField
+                  label="Senha"
+                  iconName="lock-closed-outline"
+                  placeholder="••••••••"
+                  value={senha}
+                  onChangeText={setSenha}
+                  secureEntry
+                  isFocused={senhaFocused}
+                  onFocus={() => setSenhaFocused(true)}
+                  onBlur={() => setSenhaFocused(false)}
+                />
+
+                <TouchableOpacity
+                  style={[styles.button, loading && { opacity: 0.7 }]}
+                  onPress={handleEntrar}
+                  disabled={loading}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.buttonText}>
+                    {loading ? 'Aguarde...' : 'Entrar'}
+                  </Text>
+                </TouchableOpacity>
+
+                <View style={styles.dividerWrapper}>
+                  <View style={styles.dividerLine} />
+                  <Text style={styles.dividerLabel}>ou continue com</Text>
+                  <View style={styles.dividerLine} />
+                </View>
+
+                <View style={styles.footerRow}>
+                  <Text style={styles.footerText}>Já tem uma conta? </Text>
+                  <TouchableOpacity 
+                    onPress={() => navigation.navigate('Login')}
+                    accessibilityRole="link"
+                  >
+                    <Text style={styles.footerLink}>Fazer login</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
+            )}
 
-            <InputField
-              label="Nome"
-              iconName="person-outline"
-              placeholder="João Pereira"
-              value={nome}
-              onChangeText={setNome}
-              isFocused={nomeFocused}
-              onFocus={() => setNomeFocused(true)}
-              onBlur={() => setNomeFocused(false)}
-            />
+            {step === 2 && (
+              <View style={{ marginTop: 20 }}>
+                {/* Ícone de Sucesso */}
+                <View style={styles.checkmarkCircle}>
+                  <Ionicons name="checkmark" size={38} color="#FFFFFF" />
+                </View>
 
-            <InputField
-              label="Matricula ou E-mail"
-              iconName="person-outline"
-              placeholder="0020015786"
-              value={matricula}
-              onChangeText={setMatricula}
-              isFocused={matriculaFocused}
-              onFocus={() => setMatriculaFocused(true)}
-              onBlur={() => setMatriculaFocused(false)}
-            />
+                {/* Cabeçalho */}
+                <Text style={styles.successHeader}>PROCESSO CONCLUÍDO</Text>
+                <Text style={styles.successTitle}>primeiro acesso</Text>
+                <Text style={styles.successDescription}>
+                  Este é o seu primeiro acesso. Por segurança, redefina sua senha. As senhas devem ser idênticas e conter no mínimo 6 caracteres.
+                </Text>
 
-            <InputField
-              label="Senha"
-              iconName="lock-closed-outline"
-              placeholder="12345678"
-              value={senha}
-              onChangeText={setSenha}
-              secureEntry
-              isFocused={senhaFocused}
-              onFocus={() => setSenhaFocused(true)}
-              onBlur={() => setSenhaFocused(false)}
-            />
+                <InputField
+                  label="Nova Senha"
+                  iconName="lock-closed-outline"
+                  placeholder="••••••••"
+                  value={novaSenha}
+                  onChangeText={setNovaSenha}
+                  secureEntry
+                  isFocused={novaSenhaFocused}
+                  onFocus={() => setNovaSenhaFocused(true)}
+                  onBlur={() => setNovaSenhaFocused(false)}
+                />
 
-            <TouchableOpacity
-              style={[styles.button, loading && { opacity: 0.7 }]}
-              onPress={handleEntrar}
-              disabled={loading}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.buttonText}>
-                {loading ? 'Aguarde...' : 'Entrar'}
-              </Text>
-            </TouchableOpacity>
+                <InputField
+                  label="Confirmar Nova Senha"
+                  iconName="lock-closed-outline"
+                  placeholder="••••••••"
+                  value={confirmarSenha}
+                  onChangeText={setConfirmarSenha}
+                  secureEntry
+                  isFocused={confirmarSenhaFocused}
+                  onFocus={() => setConfirmarSenhaFocused(true)}
+                  onBlur={() => setConfirmarSenhaFocused(false)}
+                />
 
-            <View style={styles.dividerWrapper}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerLabel}>ou continue com</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            <View style={styles.footerRow}>
-              <Text style={styles.footerText}>Primeiro acesso? </Text>
-              <TouchableOpacity accessibilityRole="link">
-                <Text style={styles.footerLink}>Ative sua conta</Text>
-              </TouchableOpacity>
-            </View>
+                <TouchableOpacity
+                  style={[styles.button, loading && { opacity: 0.7 }]}
+                  onPress={handleFinalize}
+                  disabled={loading}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.buttonText}>
+                    {loading ? 'Aguarde...' : 'IR PARA TELA INICIAL'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

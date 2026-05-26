@@ -121,22 +121,12 @@ export default function WelcomeScreen({ navigation }: Props) {
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.button}
-          onPress={handleFirstAccess}
-          activeOpacity={0.85}
-          accessibilityRole="button"
-          accessibilityLabel="Primeiro Acesso"
-        >
-          <Text style={styles.buttonText}>Primeiro Acesso</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.buttonSecondary}
           onPress={handleLogin}
           activeOpacity={0.85}
           accessibilityRole="button"
-          accessibilityLabel="Já tenho uma conta"
+          accessibilityLabel="Começar"
         >
-          <Text style={styles.buttonSecondaryText}>Já tenho uma conta</Text>
+          <Text style={styles.buttonText}>COMEÇAR</Text>
         </TouchableOpacity>
       </View>
 
