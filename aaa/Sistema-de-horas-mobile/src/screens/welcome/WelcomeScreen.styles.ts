@@ -73,7 +73,7 @@ export const styles = StyleSheet.create({
   // paddingBottom: 56 afasta o botão da borda inferior (acima da onda)
   footer: {
     paddingHorizontal: 32,
-    paddingBottom: 56,          // espaço suficiente acima da onda inferior
+    paddingBottom: 110,         // espaço suficiente acima da onda inferior
     zIndex: 1,                  // ← na frente da onda inferior
   },
 

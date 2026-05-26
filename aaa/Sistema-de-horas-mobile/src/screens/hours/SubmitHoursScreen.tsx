@@ -44,8 +44,12 @@ export default function SubmitHoursScreen({ navigation }: Props) {
   }, []);
 
   const handleContinue = () => {
-    if (!titulo || !categoriaId || !horas || !descricao || !courseId) {
+    if (!titulo || !categoriaId || !horas || !descricao) {
       setError('Por favor, preencha todos os campos obrigatórios.');
+      return;
+    }
+    if (!courseId) {
+      setError('Erro ao carregar o curso do aluno. Verifique sua conexão ou tente fazer login novamente.');
       return;
     }
     setError(null);

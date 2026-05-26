@@ -365,6 +365,7 @@ exports.getResumoHoras = async (req, res) => {
         const totalIntegralizado = Object.values(aprovadasMap).reduce((a, b) => a + b, 0);
 
         res.status(200).json({
+            course_id: course_id,
             curso: userCourse.rows[0].course_name,
             total_obrigatorio: minimum_required_hours,
             total_integralizado: totalIntegralizado,
