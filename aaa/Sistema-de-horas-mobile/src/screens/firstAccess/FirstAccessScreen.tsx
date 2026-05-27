@@ -81,7 +81,7 @@ function InputField({
         <Ionicons
           name={iconName}
           size={18}
-          color={isFocused ? '#1A3D6D' : '#9CA3AF'}
+          color={isFocused ? '#004587' : '#9CA3AF'}
           style={{ marginRight: 10 }}
         />
 

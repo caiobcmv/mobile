@@ -30,7 +30,7 @@ export const styles = StyleSheet.create({
   // ─── Área de rolagem ─────────────────────────────────────────────────
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 40,
+    paddingBottom: 240,
   },
 
   // ─── Conteúdo principal (centralizado) ───────────────────────────────
@@ -44,7 +44,7 @@ export const styles = StyleSheet.create({
   logoArea: {
     alignItems: 'center',
     marginBottom: 28,
-    marginTop: 16,
+    marginTop: 130,
     zIndex: 1,
   },
 
@@ -68,7 +68,7 @@ export const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontWeight: '700',
-    color: '#1A1A2E',
+    color: '#004587',
     marginBottom: 2,
   },
 
@@ -103,7 +103,7 @@ export const styles = StyleSheet.create({
   },
 
   inputBoxFocused: {
-    borderColor: '#1A3D6D',      // borda azul quando focado
+    borderColor: '#004587',      // borda azul quando focado
   },
 
   input: {
@@ -118,25 +118,20 @@ export const styles = StyleSheet.create({
 
   // ─── Botão "Entrar" ───────────────────────────────────────────────────
   button: {
-    backgroundColor: '#1A3D6D',
-    borderRadius: 12,
-    height: 52,
+    backgroundColor: '#004587',
+    borderRadius: 10,
+    height: 54,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,
     marginBottom: 24,
-    shadowColor: '#1A3D6D',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.28,
-    shadowRadius: 8,
-    elevation: 6,
   },
 
   buttonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
-    letterSpacing: 0.4,
+    letterSpacing: 1,
   },
 
   // ─── Separador "ou continue com" ─────────────────────────────────────
@@ -182,17 +177,12 @@ export const styles = StyleSheet.create({
     width: 76,
     height: 76,
     borderRadius: 38,
-    backgroundColor: '#1B3D6D',
+    backgroundColor: '#004587',
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
     marginTop: 20,
     marginBottom: 16,
-    shadowColor: '#1B3D6D',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 4,
   },
 
   successHeader: {
@@ -207,7 +197,7 @@ export const styles = StyleSheet.create({
   successTitle: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#1B3D6D',
+    color: '#004587',
     textAlign: 'center',
     marginBottom: 16,
   },

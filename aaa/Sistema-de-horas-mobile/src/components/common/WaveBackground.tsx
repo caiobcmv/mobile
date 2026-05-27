@@ -2,17 +2,18 @@
  * WaveBackground.tsx
  *
  * Componente responsável pelas ONDAS decorativas do topo e da base da tela.
- * Usa a View padrão do React Native com borderRadius para simular as curvas.
+ * Usa SVG para renderizar 3 camadas de ondas exatamente como na imagem:
+ *   - Azul (externo)
+ *   - Laranja (médio)
+ *   - Creme (interno)
  *
- * Props:
- *  - position: 'top' | 'bottom' — define se a onda fica em cima ou embaixo
- *
- * Por que separar em componente?
- *  Reutilizável em outras telas (Login, Cadastro, etc.) sem duplicar código.
+ * Ajustado para que a onda inferior suba um pouco mais (deslocamento de 20px para cima),
+ * preenchendo melhor o rodapé e aproximando-se da área central de conteúdo.
  */
 
 import React from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 
 const { width } = Dimensions.get('window');
 
@@ -21,35 +22,60 @@ interface WaveBackgroundProps {
   position: 'top' | 'bottom';
 }
 
+const WAVE_HEIGHT = 220; // Altura do container das ondas
+
 // ─── Componente ─────────────────────────────────────────────────────────
 export default function WaveBackground({ position }: WaveBackgroundProps) {
   const isTop = position === 'top';
 
+  if (isTop) {
+    return (
+      <View style={styles.containerTop} pointerEvents="none">
+        <Svg width="100%" height="100%" viewBox="0 0 375 220" preserveAspectRatio="none">
+          {/* Creme (background) */}
+          <Path
+            d="M 0,0 L 0,120 C 90,210 230,10 375,150 L 375,0 Z"
+            fill="#FDE8D3"
+          />
+          {/* Laranja (médio) */}
+          <Path
+            d="M 0,0 L 0,75 C 90,165 230,-35 375,105 L 375,0 Z"
+            fill="#FCA84E"
+          />
+          {/* Azul (foreground) */}
+          <Path
+            d="M 0,0 L 0,30 C 90,120 230,-80 375,60 L 375,0 Z"
+            fill="#1E5B9A"
+          />
+        </Svg>
+      </View>
+    );
+  }
+
   return (
-    <View style={isTop ? styles.containerTop : styles.containerBottom} pointerEvents="none">
-      {/* Wave 1: Peach/Orange */}
-      <View
-        style={[
-          styles.wave,
-          styles.waveOrange,
-          isTop ? styles.waveTopOrange : styles.waveBottomOrange,
-        ]}
-      />
-      {/* Wave 2: Deep Blue */}
-      <View
-        style={[
-          styles.wave,
-          styles.waveBlue,
-          isTop ? styles.waveTopBlue : styles.waveBottomBlue,
-        ]}
-      />
+    <View style={styles.containerBottom} pointerEvents="none">
+      <Svg width="100%" height="100%" viewBox="0 0 375 220" preserveAspectRatio="none">
+        {/* Creme (background) - Deslocado 20px para cima */}
+        <Path
+          d="M 0,220 L 0,80 C 90,-10 230,200 375,50 L 375,220 Z"
+          fill="#FDE8D3"
+        />
+        {/* Laranja (médio) - Deslocado 20px para cima */}
+        <Path
+          d="M 0,220 L 0,125 C 90,35 230,245 375,95 L 375,220 Z"
+          fill="#FCA84E"
+        />
+        {/* Azul (foreground) - Deslocado 20px para cima */}
+        <Path
+          d="M 0,220 L 0,170 C 90,80 230,290 375,140 L 375,220 Z"
+          fill="#1E5B9A"
+        />
+      </Svg>
     </View>
   );
 }
 
 // ─── Estilos internos do componente ────────────────────────────────────
-const WAVE_HEIGHT = 220; // altura do bloco da onda
-
 const styles = StyleSheet.create({
   containerTop: {
     position: 'absolute',
@@ -68,37 +94,5 @@ const styles = StyleSheet.create({
     height: WAVE_HEIGHT,
     zIndex: 0,
     overflow: 'hidden',
-  },
-  wave: {
-    position: 'absolute',
-    width: width * 1.45,
-    height: WAVE_HEIGHT,
-    left: -width * 0.225,
-  },
-  waveOrange: {
-    backgroundColor: '#F5C9A0', // pêssego/laranja claro
-  },
-  waveBlue: {
-    backgroundColor: '#1B3D6D', // azul Senac
-  },
-  waveTopOrange: {
-    top: -WAVE_HEIGHT * 0.38,
-    borderBottomLeftRadius: width * 0.75,
-    borderBottomRightRadius: width * 0.75,
-  },
-  waveTopBlue: {
-    top: -WAVE_HEIGHT * 0.48,
-    borderBottomLeftRadius: width * 0.75,
-    borderBottomRightRadius: width * 0.75,
-  },
-  waveBottomOrange: {
-    bottom: -WAVE_HEIGHT * 0.38,
-    borderTopLeftRadius: width * 0.75,
-    borderTopRightRadius: width * 0.75,
-  },
-  waveBottomBlue: {
-    bottom: -WAVE_HEIGHT * 0.48,
-    borderTopLeftRadius: width * 0.75,
-    borderTopRightRadius: width * 0.75,
   },
 });

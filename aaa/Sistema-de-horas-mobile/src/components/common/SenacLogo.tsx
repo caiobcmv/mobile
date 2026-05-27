@@ -1,37 +1,32 @@
 /**
  * SenacLogo.tsx
  *
- * Componente que renderiza o LOGO do Senac usando apenas primitivos do
- * React Native (View + Text), sem depender de imagem externa.
- *
- * Por que separar em componente?
- *  - O logo aparece em várias telas (Welcome, Login, Header).
- *  - Centraliza qualquer mudança futura em um único lugar.
- *  - Mantém a WelcomeScreen limpa e legível.
- *
- * Anatomia visual:
- *
- *      ╱▔▔╲            ← triângulo laranja (asa superior)
- *    ╱______╲          ← triângulo azul    (asa inferior)
- *   [ S E N A C ]      ← texto do logotipo
+ * Componente que renderiza o LOGO do Senac usando SVG para as asas
+ * e Text para o logotipo, combinando para formar a marca oficial.
  */
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 
 export default function SenacLogo() {
   return (
     <View style={styles.container} accessibilityLabel="Logo Senac">
-
-      {/* ── Ícone estilizado (símbolo de "asa/avião") ─────────────────── */}
+      
+      {/* ── Ícone das asas em SVG ─────────────────── */}
       <View style={styles.iconWrapper}>
-
-        {/* Triângulo laranja — asa superior */}
-        <View style={styles.triangleOrange} />
-
-        {/* Triângulo azul — asa inferior */}
-        <View style={styles.triangleBlue} />
-
+        <Svg width={80} height={40} viewBox="0 0 80 40">
+          {/* Asa Laranja (superior) */}
+          <Path
+            d="M48 14 C56 5, 72 10, 78 11 C68 15, 56 17, 48 14 Z"
+            fill="#F5A547"
+          />
+          {/* Asa Azul (inferior) */}
+          <Path
+            d="M32 24 C44 12, 68 18, 76 19 C62 23, 46 26, 32 24 Z"
+            fill="#20609C"
+          />
+        </Svg>
       </View>
 
       {/* ── Texto "Senac" ─────────────────────────────────────────────── */}
@@ -43,60 +38,21 @@ export default function SenacLogo() {
 
 // ─── Estilos ────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  // Coluna centralizada: ícone acima, texto abaixo
   container: {
     alignItems: 'center',
+    justifyContent: 'center',
   },
-
-  // Agrupa os dois triângulos
   iconWrapper: {
-    width: 60,
-    height: 36,
-    marginBottom: 6,
-    position: 'relative',
+    width: 80,
+    height: 40,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-
-  // ── Técnica de triângulo no React Native ─────────────────────────────
-  // Para criar um triângulo: bordas transparentes + uma borda colorida.
-  // A borda de baixo (borderBottomColor) forma o preenchimento visível.
-
-  // Triângulo laranja (topo) — aponta para cima
-  triangleOrange: {
-    position: 'absolute',
-    top: 0,
-    width: 0,
-    height: 0,
-    borderLeftWidth: 22,
-    borderRightWidth: 22,
-    borderBottomWidth: 22,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderBottomColor: '#E87722', // laranja Senac
-    zIndex: 2,
-  },
-
-  // Triângulo azul (base) — aponta para baixo (invertido)
-  triangleBlue: {
-    position: 'absolute',
-    bottom: 0,
-    width: 0,
-    height: 0,
-    borderLeftWidth: 30,
-    borderRightWidth: 30,
-    borderTopWidth: 20,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderTopColor: '#1A3D6D',   // azul Senac
-    zIndex: 1,
-  },
-
-  // Texto "Senac" em azul e negrito
   logoText: {
-    fontSize: 28,
+    fontSize: 34,
     fontWeight: '800',
-    color: '#1A3D6D',
-    letterSpacing: 1,
-    marginTop: 8,
+    color: '#20609C',
+    letterSpacing: -0.5,
+    marginTop: -4, // Aproxima o texto do ícone para seguir o padrão oficial
   },
 });

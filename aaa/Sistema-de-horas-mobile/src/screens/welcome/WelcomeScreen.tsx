@@ -109,8 +109,6 @@ export default function WelcomeScreen({ navigation }: Props) {
           Conectando você à excelência profissional.
         </Text>
 
-        {/* Linha decorativa laranja */}
-        <View style={styles.divider} />
 
       </Animated.View>
 

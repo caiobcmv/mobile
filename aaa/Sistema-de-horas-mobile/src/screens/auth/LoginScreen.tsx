@@ -90,7 +90,7 @@ function InputField({
         <Ionicons
           name={iconName}
           size={18}
-          color={isFocused ? '#1A3D6D' : '#9CA3AF'}
+          color={isFocused ? '#004587' : '#9CA3AF'}
           style={styles.inputIcon}
         />
 
@@ -273,13 +273,13 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 40,
+    paddingBottom: 240,
   },
 
   // Logo
   logoArea: {
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 130,
     marginBottom: 28,
     zIndex: 1,
   },
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontWeight: '700',
-    color: '#1A1A2E',
+    color: '#004587',
     marginBottom: 4,
   },
   subtitle: {
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
     height: 50,
   },
   inputBoxFocused: {
-    borderColor: '#1A3D6D',
+    borderColor: '#004587',
   },
   inputIcon: {
     marginRight: 10,
@@ -357,24 +357,19 @@ const styles = StyleSheet.create({
   },
   // Botão Entrar
   button: {
-    backgroundColor: '#1A3D6D',
-    borderRadius: 12,
-    height: 52,
+    backgroundColor: '#004587',
+    borderRadius: 10,
+    height: 54,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,
     marginBottom: 24,
-    shadowColor: '#1A3D6D',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.28,
-    shadowRadius: 8,
-    elevation: 6,
   },
   buttonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
-    letterSpacing: 0.4,
+    letterSpacing: 1,
   },
 
   // Separador
