@@ -50,6 +50,13 @@ function acessarPortal() {
             if (data.nome) localStorage.setItem('nome', data.nome);
             if (data.email) localStorage.setItem('email', data.email);
 
+            // Se for o primeiro acesso, força o redirecionamento para primeiro_acesso.html
+            if (data.primeiroAcesso === true) {
+                localStorage.setItem('primeiroAcesso', 'true');
+                window.location.href = '/pages/primeiro_acesso.html';
+                return;
+            }
+
             // --- REDIRECIONAMENTO CORRIGIDO (Comparando strings do print) ---
             const perfilUpper = perfilReal.toUpperCase();
 
@@ -74,9 +81,16 @@ function acessarPortal() {
 function protegerPagina(perfisPermitidos) {
     const token = localStorage.getItem('token');
     const perfil = localStorage.getItem('perfil');
+    const primeiroAcesso = localStorage.getItem('primeiroAcesso');
 
     if (!token || !perfil) {
         window.location.href = '/pages/index.html';
+        return null;
+    }
+
+    // Se a flag de primeiro acesso estiver ativa, bloqueia a visualização e redireciona
+    if (primeiroAcesso === 'true' && !window.location.pathname.includes('primeiro_acesso.html')) {
+        window.location.href = '/pages/primeiro_acesso.html';
         return null;
     }
 

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Senac - Primeiro Acesso</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="/styles/primeiro_acesso.css">
+    <script src="/services/apiHelper.js"></script>
+    <script src="/services/script.js"></script>
+</head>
+<body>
+    <header class="cabecalho-primeiro-acesso">
+        <h1>Portal Acadêmico</h1>
+        <div class="cabecalho-acoes">
+            <i class='bx bx-globe'></i>
+            <i class='bx bx-help-circle'></i>
+        </div>
+    </header>
+
+    <main class="container-primeiro-acesso">
+        <div class="card-primeiro-acesso">
+            <div class="circulo-sucesso">
+                <i class='bx bx-check'></i>
+            </div>
+            <span class="processo-concluido">PROCESSO CONCLUÍDO</span>
+            <h2>Primeiro acesso</h2>
+            <p class="descricao-primeiro-acesso">
+                Este é o seu primeiro acesso. Por segurança, redefina sua senha. As senhas devem ser idênticas e conter no mínimo 8 caracteres.
+            </p>
+
+            <form id="form-primeiro-acesso">
+                <div class="campo-grupo">
+                    <label for="nova-senha">Nova senha</label>
+                    <div class="input-container">
+                        <i class='bx bx-lock-alt icon-left'></i>
+                        <input type="password" id="nova-senha" placeholder="••••••••" required>
+                        <i class='bx bx-hide icon-right' onclick="togglePasswordVisibility('nova-senha', this)"></i>
+                    </div>
+                </div>
+
+                <div class="campo-grupo">
+                    <label for="confirmar-senha">Confirmar senha</label>
+                    <div class="input-container">
+                        <i class='bx bx-lock-alt icon-left'></i>
+                        <input type="password" id="confirmar-senha" placeholder="••••••••" required>
+                        <i class='bx bx-hide icon-right' onclick="togglePasswordVisibility('confirmar-senha', this)"></i>
+                    </div>
+                </div>
+
+                <div id="mensagem-erro" style="color: #ef4444; font-size: 12px; margin-top: 10px; text-align: left; display: none;"></div>
+
+                <button type="submit" class="btn-primeiro-acesso" id="btn-submit" disabled>
+                    Ir para tela inicial <i class='bx bx-right-arrow-alt'></i>
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <footer class="rodape-primeiro-acesso">
+        <div class="links-rodape">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+            <a href="#">Support</a>
+        </div>
+        <p>© 2024 Senac Academic. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Garante que o usuário está autenticado
+        const token = localStorage.getItem('token');
+        const email = localStorage.getItem('email');
+        const perfil = localStorage.getItem('perfil');
+
+        if (!token || !email) {
+            window.location.href = '/pages/index.html';
+        }
+
+        const inputNova = document.getElementById('nova-senha');
+        const inputConfirmar = document.getElementById('confirmar-senha');
+        const btnSubmit = document.getElementById('btn-submit');
+        const mensagemErro = document.getElementById('mensagem-erro');
+        const form = document.getElementById('form-primeiro-acesso');
+
+        function togglePasswordVisibility(inputId, iconEl) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                iconEl.className = 'bx bx-show icon-right';
+            } else {
+                input.type = 'password';
+                iconEl.className = 'bx bx-hide icon-right';
+            }
+        }
+
+        function validarFormulario() {
+            const nova = inputNova.value;
+            const confirmar = inputConfirmar.value;
+
+            let valido = true;
+            let msg = '';
+
+            if (nova.length < 8) {
+                valido = false;
+                if (nova.length > 0) {
+                    msg = 'A senha deve ter no mínimo 8 caracteres.';
+                }
+            } else if (nova !== confirmar) {
+                valido = false;
+                if (confirmar.length > 0) {
+                    msg = 'As senhas não coincidem.';
+                }
+            }
+
+            if (valido && nova.length >= 8 && confirmar.length >= 8) {
+                btnSubmit.disabled = false;
+                btnSubmit.classList.add('active');
+                mensagemErro.style.display = 'none';
+            } else {
+                btnSubmit.disabled = true;
+                btnSubmit.classList.remove('active');
+                if (msg) {
+                    mensagemErro.textContent = msg;
+                    mensagemErro.style.display = 'block';
+                } else {
+                    mensagemErro.style.display = 'none';
+                }
+            }
+        }
+
+        inputNova.addEventListener('input', validarFormulario);
+        inputConfirmar.addEventListener('input', validarFormulario);
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nova = inputNova.value;
+
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = 'Processando... <i class="bx bx-loader-alt bx-spin"></i>';
+
+            try {
+                const res = await apiPost('/auth/redefinir-senha', {
+                    email: email,
+                    novaSenha: nova
+                });
+
+                if (res.erro) {
+                    throw new Error(res.erro);
+                }
+
+                localStorage.removeItem('primeiroAcesso');
+                alert('Sua senha foi redefinida com sucesso! Você será redirecionado para a tela inicial.');
+
+                const perfilUpper = (perfil || '').toUpperCase();
+                if (perfilUpper === 'STUDENT' || perfilUpper === 'ALUNO') {
+                    window.location.href = '/pages/Dasboard.html';
+                } else if (perfilUpper === 'COORDINATOR' || perfilUpper === 'COORDENADOR') {
+                    window.location.href = '/pages/dashboardadm.html';
+                } else if (perfilUpper === 'ADMIN' || perfilUpper === 'SUPER_ADMIN') {
+                    window.location.href = '/pages/cursosuperadm.html';
+                } else {
+                    window.location.href = '/pages/index.html';
+                }
+
+            } catch (err) {
+                mensagemErro.textContent = err.message || 'Erro ao redefinir a senha.';
+                mensagemErro.style.display = 'block';
+                btnSubmit.disabled = false;
+                btnSubmit.classList.add('active');
+                btnSubmit.innerHTML = 'Ir para tela inicial <i class="bx bx-right-arrow-alt"></i>';
+            }
+        });
+    </script>
+</body>
+</html>

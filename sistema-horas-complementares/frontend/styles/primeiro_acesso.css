@@ -1,0 +1,247 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+    --fundo-pagina: #f8fafc;
+    --azul-senac: #004587;
+    --azul-dark: #002244;
+    --texto-suave: #64748b;
+    --laranja-senac: #f59e0b;
+    --borda-input: #e2e8f0;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Outfit', 'Inter', sans-serif;
+}
+
+body {
+    background-color: var(--fundo-pagina);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* ========== HEADER ========== */
+.cabecalho-primeiro-acesso {
+    background: #ffffff;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    border-bottom: 1px solid #edf2f7;
+    width: 100%;
+}
+
+.cabecalho-primeiro-acesso h1 {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--azul-senac);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+}
+
+.cabecalho-acoes {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    color: var(--azul-senac);
+    font-size: 20px;
+}
+
+.cabecalho-acoes i {
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.cabecalho-acoes i:hover {
+    opacity: 0.8;
+}
+
+/* ========== CONTEUDO PRINCIPAL ========== */
+.container-primeiro-acesso {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.card-primeiro-acesso {
+    background: #ffffff;
+    width: 100%;
+    max-width: 480px;
+    border-radius: 16px;
+    padding: 40px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+    text-align: center;
+    border: 1px solid #f1f5f9;
+}
+
+.circulo-sucesso {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background-color: var(--azul-dark);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+.circulo-sucesso i {
+    color: #ffffff;
+    font-size: 36px;
+}
+
+.processo-concluido {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--laranja-senac);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.card-primeiro-acesso h2 {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--azul-dark);
+    margin-bottom: 16px;
+}
+
+.descricao-primeiro-acesso {
+    font-size: 13px;
+    color: var(--texto-suave);
+    line-height: 1.6;
+    margin-bottom: 28px;
+    padding: 0 10px;
+}
+
+/* ========== FORMULÁRIO ========== */
+.campo-grupo {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.campo-grupo label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--azul-dark);
+    display: block;
+    margin-bottom: 6px;
+    text-transform: capitalize;
+}
+
+.input-container {
+    position: relative;
+    width: 100%;
+}
+
+.input-container i.icon-left {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #94a3b8;
+}
+
+.input-container i.icon-right {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.input-container i.icon-right:hover {
+    color: var(--azul-senac);
+}
+
+.input-container input {
+    background-color: #f3f4fd;
+    border: none;
+    border-radius: 8px;
+    padding: 14px 40px;
+    width: 100%;
+    font-size: 14px;
+    color: #1e293b;
+    outline: none;
+    transition: background-color 0.2s;
+}
+
+.input-container input:focus {
+    background-color: #ebedfa;
+}
+
+/* ========== BOTÃO ========== */
+.btn-primeiro-acesso {
+    background-color: #829ab1;
+    color: #ffffff;
+    border: none;
+    border-radius: 24px;
+    padding: 14px;
+    width: 100%;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: not-allowed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 28px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: background-color 0.2s, cursor 0.2s;
+}
+
+.btn-primeiro-acesso.active {
+    background-color: var(--azul-senac);
+    cursor: pointer;
+}
+
+.btn-primeiro-acesso.active:hover {
+    background-color: var(--azul-dark);
+}
+
+/* ========== FOOTER ========== */
+.rodape-primeiro-acesso {
+    padding: 30px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.links-rodape {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+
+.links-rodape a {
+    color: #829ab1;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+    letter-spacing: 0.5px;
+}
+
+.links-rodape a:hover {
+    text-decoration: underline;
+}
+
+.rodape-primeiro-acesso p {
+    font-size: 10px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
