@@ -183,3 +183,39 @@ exports.trocarSenha = async (req, res) => {
         res.status(500).json({ erro: "Erro ao trocar senha: " + err.message });
     }
 };
+
+exports.redefinirSenha = async (req, res) => {
+    const { email, novaSenha } = req.body;
+
+    try {
+        if (!email || !novaSenha) {
+            return res.status(400).json({ erro: "E-mail e nova senha são obrigatórios." });
+        }
+
+        if (novaSenha.length < 8) {
+            return res.status(400).json({ erro: "A nova senha deve ter pelo menos 8 caracteres." });
+        }
+
+        const resultado = await pool.query(
+            `SELECT * FROM users WHERE email = $1`,
+            [email]
+        );
+
+        const usuario = resultado.rows[0];
+        if (!usuario) {
+            return res.status(404).json({ erro: "Usuário não encontrado." });
+        }
+
+        const novaSenhaCripto = await bcrypt.hash(novaSenha, 10);
+
+        await pool.query(
+            `UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2`,
+            [novaSenhaCripto, usuario.id]
+        );
+
+        res.status(200).json({ mensagem: "Senha redefinida com sucesso!" });
+
+    } catch (err) {
+        res.status(500).json({ erro: "Erro ao redefinir senha: " + err.message });
+    }
+};

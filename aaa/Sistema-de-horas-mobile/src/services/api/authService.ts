@@ -24,4 +24,7 @@ export const authService = {
 
   resetPassword: (token: string, newPassword: string) =>
     api.post('/auth/reset-password', { token, newPassword }),
+
+  redefinirSenha: (email: string, novaSenha: string) =>
+    api.post<{ mensagem: string }>('/auth/redefinir-senha', { email, novaSenha }),
 };

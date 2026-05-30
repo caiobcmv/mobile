@@ -6,6 +6,7 @@ export { default as FirstAccessScreen } from './firstAccess/FirstAccessScreen';
 
 // Telas Auth
 export { default as LoginScreen } from './auth/LoginScreen';
+export { default as ForgotPasswordScreen } from './auth/ForgotPasswordScreen';
 
 // Seleção de curso (pós-login)
 export { default as SelectCourseScreen } from './selectCourse/SelectCourseScreen';

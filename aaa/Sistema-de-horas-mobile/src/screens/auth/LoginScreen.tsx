@@ -164,7 +164,7 @@ export default function LoginScreen({ navigation }: Props) {
   };
 
   const handleForgotPassword = () => {
-    // TODO: navegar para tela de recuperação de senha
+    navigation.navigate('ForgotPassword');
   };
 
   return (
@@ -181,6 +181,7 @@ export default function LoginScreen({ navigation }: Props) {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
+          scrollEnabled={false}
         >
           {/* Logo Senac */}
           <View style={styles.logoArea}>
@@ -273,7 +274,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 240,
+    paddingBottom: 0,
   },
 
   // Logo

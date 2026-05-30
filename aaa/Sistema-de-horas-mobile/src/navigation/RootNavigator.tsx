@@ -23,6 +23,7 @@ import {
   WelcomeScreen,        // boas-vindas (apenas no 1º acesso)
   FirstAccessScreen,    // primeiro acesso (senha inicial)
   LoginScreen,
+  ForgotPasswordScreen,
   SelectCourseScreen,   // seleção do curso ativo (após login)
   DashboardScreen,
   HoursListScreen,
@@ -55,6 +56,7 @@ export default function RootNavigator() {
         <Stack.Screen name="Welcome" component={WelcomeScreen} />
         <Stack.Screen name="FirstAccess" component={FirstAccessScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
         <Stack.Screen name="SelectCourse" component={SelectCourseScreen} />
 
         {/* ── Fluxo principal (Dashboard) ── */}
