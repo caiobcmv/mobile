@@ -3,18 +3,34 @@ const multer = require('multer');
 const path = require('path');
 const { executarOCR } = require('../services/ocrService');
 
+const MIME_EXTENSIONS = {
+    'image/jpeg': '.jpg',
+    'image/jpg': '.jpg',
+    'image/png': '.png',
+    'application/pdf': '.pdf'
+};
+
+const getExtension = (file) => {
+    let ext = path.extname(file.originalname).toLowerCase();
+    if (!ext && file.mimetype) {
+        ext = MIME_EXTENSIONS[file.mimetype] || '';
+    }
+    return ext;
+};
+
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'uploads/');
     },
     filename: (req, file, cb) => {
-        const nomeUnico = `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`;
+        const ext = getExtension(file);
+        const nomeUnico = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
         cb(null, nomeUnico);
     }
 });
 
 const fileFilter = (req, file, cb) => {
-    const extensao = path.extname(file.originalname).toLowerCase();
+    const extensao = getExtension(file);
     const extensoesPermitidas = ['.jpg', '.jpeg', '.png', '.pdf'];
 
     if (extensoesPermitidas.includes(extensao)) {
@@ -32,7 +48,10 @@ const upload = multer({
 
 // Mapeia mimetype para o enum file_type_enum do banco
 const getFileType = (mimetype, originalname) => {
-    const ext = path.extname(originalname).toLowerCase();
+    let ext = path.extname(originalname).toLowerCase();
+    if (!ext && mimetype) {
+        ext = MIME_EXTENSIONS[mimetype] || '';
+    }
     if (ext === '.pdf') return 'pdf';
     if (['.jpg', '.jpeg', '.png'].includes(ext)) return 'image';
     return 'other';
