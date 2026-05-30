@@ -220,10 +220,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (isCoordenador) {
             links = [
                 { href: 'dashboardadm.html', icon: 'bx-grid-alt', text: 'Dashboard' },
+                { href: 'protocoloadm.html', icon: 'bx-file', text: 'Protocolos' },
                 { href: 'alunos.html', icon: 'bx-group', text: 'Alunos' },
-                { href: 'protocoloadm.html', icon: 'bx-upload', text: 'Submissões' },
-                { href: 'cadastrar_regra.html', icon: 'bx-list-check', text: 'Regras de Horas' },
-                { href: 'relatorios.html', icon: 'bx-bar-chart-alt-2', text: 'Relatórios' },
+                { href: 'submissoes.html', icon: 'bx-upload', text: 'Submissões' },
                 { href: 'configuracoes.html', icon: 'bx-cog', text: 'Configurações' }
             ];
         }
@@ -232,7 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Ajuste para manter o menu lateral sincronizado com a página atual
             let targetActive = currentPage;
             
-            // Submissões e Análise ativam o item "Submissões" (protocoloadm.html)
+            // Submissões e Análise ativam o item "Protocolos" (protocoloadm.html)
             if (['protocoloadm.html', 'analise_certificado.html'].includes(currentPage)) {
                 targetActive = 'protocoloadm.html';
             }
@@ -240,8 +239,12 @@ document.addEventListener('DOMContentLoaded', () => {
             else if (['alunos.html', 'editar-aluno.html', 'novo-aluno.html'].includes(currentPage)) {
                 targetActive = 'alunos.html';
             }
-            // Repositório e Extrato de Horas são visualizações vinculadas ao Dashboard (Início)
-            else if (['submissoes.html', 'extrato_certificado.html'].includes(currentPage)) {
+            // Repositório de Certificados ativa o item "Submissões" (submissoes.html)
+            else if (currentPage === 'submissoes.html') {
+                targetActive = 'submissoes.html';
+            }
+            // Extrato de Horas são visualizações vinculadas ao Dashboard (Início)
+            else if (currentPage === 'extrato_certificado.html') {
                 targetActive = isSuperAdmin ? 'dashboard_superadmin.html' : 'dashboardadm.html';
             }
             // Cadastro de coordenador ativa o item "Coordenadores"

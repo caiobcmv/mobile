@@ -61,8 +61,6 @@ body {
     text-transform: uppercase;
 }
 
-.secao-titulo 
-
 .titulo-dir {
     text-align: right;
     display: flex;
@@ -469,6 +467,179 @@ body {
 .rodape-dashboard p {
     font-size: 12px;
     color: #adb5bd;
+}
+
+/* ========== COLUNA ESQUERDA ========== */
+.coluna-esquerda {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+/* ========== CARD MURAL DE INTELIGÊNCIA ========== */
+.card-mural {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+}
+
+.mural-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.mural-header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.mural-header-left .etiqueta-mural {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--laranja-senac);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.mural-header-left h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--azul-dark);
+    margin-top: 2px;
+}
+
+.btn-atualizar-insights {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #e8eefc;
+    color: #004587;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background 0.2s;
+}
+
+.btn-atualizar-insights:hover {
+    background: #d6e2f9;
+}
+
+.btn-atualizar-insights i {
+    font-size: 14px;
+}
+
+.mural-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.mural-stat-card {
+    background: #f4f6fb;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: left;
+}
+
+.mural-stat-titulo {
+    font-size: 10px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+    letter-spacing: 0.5px;
+}
+
+.mural-stat-valor {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--azul-dark);
+}
+
+.mural-insight-box {
+    display: flex;
+    gap: 12px;
+    background: #f1f5fd;
+    border-left: 4px solid #004587;
+    padding: 16px;
+    border-radius: 0 8px 8px 0;
+    align-items: flex-start;
+}
+
+.mural-insight-box i {
+    font-size: 20px;
+    color: #004587;
+    margin-top: 2px;
+}
+
+.mural-insight-texto {
+    font-size: 13px;
+    color: #1e293b;
+    line-height: 1.5;
+}
+
+.mural-insight-texto strong {
+    font-weight: 700;
+    color: #004587;
+    display: block;
+    margin-bottom: 3px;
+}
+
+.mural-insight-texto p {
+    font-size: 13px;
+    color: #475569;
+    line-height: 1.5;
+}
+
+/* ========== CABECALHO TOPO AÇÕES ========== */
+.caixa-busca-topo {
+    background: #f1f5f9;
+    padding: 6px 12px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.caixa-busca-topo input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 12px;
+    width: 200px;
+    color: var(--texto-escuro);
+}
+
+.caixa-busca-topo i {
+    color: #94a3b8;
+    font-size: 16px;
+}
+
+.acoes-topo-direita {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.acoes-topo-direita i {
+    font-size: 22px;
+    color: var(--azul-senac);
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.acoes-topo-direita i:hover {
+    opacity: 0.8;
 }
 
 

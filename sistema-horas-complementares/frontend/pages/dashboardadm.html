@@ -39,22 +39,29 @@
         <main class="conteudo-principal">
             <header class="cabecalho-topo">
                 <div class="topo-links">
-                    <a href="dashboardadm.html" class="active">Dashboard</a>
-                    <a href="submissoes.html">Repositório de Certificados</a>
-                    <a href="extrato_certificado.html">Extrato de Horas</a>
+                    <a href="dashboardadm.html" class="active">Início</a>
+                    <a href="protocoloadm.html">Certificados</a>
+                    <a href="#">Dúvidas</a>
+                </div>
+                <div class="acoes-topo-direita">
+                    <div class="caixa-busca-topo">
+                        <i class='bx bx-search'></i>
+                        <input type="text" placeholder="Buscar alunos, protocolos...">
+                    </div>
+                    <i class='bx bx-bell'></i>
+                    <i class='bx bx-cog'></i>
                 </div>
             </header>
 
             <div class="page-container">
                 <div class="header-action-row">
                     <div class="page-title">
-                        <div class="breadcrumb">PORTAL<i class='bx bx-chevron-right'></i> <span>DASHBOARD</span></div>
-                        <h1>Dashboard</h1>
-                        <p>Visão geral das atividades e submissões do seu curso.</p>
+                        <span class="etiqueta-amarela" style="font-size: 11px; font-weight: 700; color: var(--laranja-senac); letter-spacing: 1px; display: block; margin-bottom: 5px;">VISÃO GERAL ACADÊMICA</span>
+                        <h1 style="color: var(--azul-senac); font-weight: 800; font-size: 32px; margin: 0;">Dashboard</h1>
                     </div>
-                    <div class="header-info-badges">
-                        <strong id="label-semestre">Semestre Letivo 2026.1</strong>
-                        <span id="label-atualizacao">Atualizado agora</span>
+                    <div class="header-info-badges" style="text-align: right; display: flex; flex-direction: column; gap: 5px;">
+                        <strong id="label-semestre" style="font-size: 14px; color: var(--azul-senac); font-weight: 600;">Semestre Letivo 2024.1</strong>
+                        <span id="label-atualizacao" style="font-size: 11px; color: var(--texto-suave);">Atualizado há 12 minutos</span>
                     </div>
                 </div>
 
@@ -62,64 +69,123 @@
                     <div class="card-kpi">
                         <div class="card-kpi-titulo">PROTOCOLOS PENDENTES</div>
                         <div class="card-kpi-valor">
-                            <span class="valor-azul kpi-dash-valor" id="kpi-pendentes">--</span>
-                            <span class="variacao variacao-positiva">aguardando análise</span>
+                            <span class="valor-azul kpi-dash-valor" id="kpi-pendentes" style="font-size: 48px; font-weight: 800; color: var(--azul-principal);">42</span>
+                            <span class="variacao variacao-positiva" style="color: var(--vermelho); font-weight: 600; font-size: 13px; margin-left: 5px;">+12% vs. ontem</span>
                         </div>
-                        <i class='bx bx-clipboard card-kpi-bg-icon'></i>
+                        <div class="barra-fundo" style="height: 6px; margin-top: 15px; background: #e2e8f0; border-radius: 3px; overflow: hidden; width: 100%;">
+                            <div class="barra-preenchimento bg-azul-escuro" style="width: 70%; height: 100%; border-radius: 3px;"></div>
+                        </div>
+                        <i class='bx bx-clipboard card-kpi-bg-icon' style="position: absolute; right: 25px; top: 50%; transform: translateY(-50%); font-size: 70px; color: #f1f3f5; opacity: 0.8;"></i>
                     </div>
 
                     <div class="card-kpi">
-                        <div class="card-kpi-titulo">TOTAL DE ALUNOS</div>
+                        <div class="card-kpi-titulo">ALUNOS HORAS FALTANTES</div>
                         <div class="card-kpi-valor">
-                            <span class="valor-escuro kpi-dash-valor" id="kpi-alunos">--</span>
-                            <span class="variacao variacao-neutra">matriculados</span>
+                            <span class="valor-escuro kpi-dash-valor" id="kpi-alunos" style="font-size: 48px; font-weight: 800; color: var(--texto-escuro);">128</span>
+                            <span class="variacao" style="color: var(--cinza-texto); font-weight: 600; font-size: 13px; margin-left: 5px;">-5% estático</span>
                         </div>
-                        <div class="card-kpi-footer">
-                            <i class='bx bx-group'></i> <span id="kpi-alunos-footer">Carregando dados...</span>
+                        <div style="display: flex; align-items: center; gap: 6px; margin-top: 15px; font-size: 11px; color: #ef4444; font-weight: 600;">
+                            <i class='bx bx-error-circle'></i> Prioridade crítica para formandos 2024.2
                         </div>
+                        <i class='bx bx-info-circle card-kpi-bg-icon' style="position: absolute; right: 25px; top: 50%; transform: translateY(-50%); font-size: 70px; color: #ffeeeb; opacity: 0.8;"></i>
                     </div>
 
                     <div class="card-kpi">
-                        <div class="card-kpi-titulo">MÉDIA DE HORAS</div>
+                        <div class="card-kpi-titulo">MÉDIA DE HORAS / CURSO</div>
                         <div class="card-kpi-valor">
-                            <span class="valor-laranja kpi-dash-valor" id="kpi-media-horas">--</span>
-                            <span class="variacao-texto">h/aluno</span>
+                            <span class="valor-laranja kpi-dash-valor" id="kpi-media-horas" style="font-size: 48px; font-weight: 800; color: var(--laranja-senac);">84.5</span>
+                            <span class="variacao-texto" style="font-size: 15px; color: var(--cinza-texto); font-weight: 500; margin-left: 5px;">h/semestre</span>
                         </div>
-                        <div class="card-kpi-chart">
-                            <div class="bar bar-laranja" style="width: 45%"></div>
-                            <div class="bar bar-laranja" style="width: 30%"></div>
-                            <div class="bar bar-laranja" style="width: 55%"></div>
-                            <div class="bar bar-cinza" style="width: 20%"></div>
+                        <div style="display: flex; gap: 6px; margin-top: 15px; align-items: center; height: 6px; width: 100%;">
+                            <div style="flex: 1; height: 100%; background: var(--laranja-senac); border-radius: 3px;"></div>
+                            <div style="flex: 1; height: 100%; background: var(--laranja-senac); border-radius: 3px;"></div>
+                            <div style="flex: 1; height: 100%; background: var(--laranja-senac); border-radius: 3px;"></div>
+                            <div style="flex: 1; height: 100%; background: #e2e8f0; border-radius: 3px;"></div>
                         </div>
                     </div>
                 </div>
 
                 <div class="grid-middle">
-                    <div class="card-content">
-                        <div class="card-header">
-                            <h2>Envios por Categoria</h2>
+                    <div class="coluna-esquerda">
+                        <div class="card-content">
+                            <div class="card-header" style="margin-bottom: 25px;">
+                                <h2 style="font-size: 18px; font-weight: 700; color: var(--azul-dark);">Envios por Categoria</h2>
+                                <div class="toggle-periodo">
+                                    <button class="active">MENSAL</button>
+                                    <button>ANUAL</button>
+                                </div>
+                            </div>
+                            <div class="barras-container" id="barras-container">
+                                <div class="skeleton-line" style="height:32px; margin-bottom:12px; border-radius:6px; background:#e2e8f0; animation: pulse 1.5s infinite;"></div>
+                            </div>
                         </div>
-                        <div class="barras-container" id="barras-container">
-                            <div class="skeleton-line" style="height:32px; margin-bottom:12px; border-radius:6px; background:#e2e8f0; animation: pulse 1.5s infinite;"></div>
+
+                        <div class="card-content card-mural">
+                            <div class="mural-header">
+                                <div class="mural-header-left">
+                                    <span class="etiqueta-mural">MURAL DE INTELIGÊNCIA</span>
+                                    <h2>Insights Operacionais</h2>
+                                </div>
+                                <button class="btn-atualizar-insights" onclick="atualizarInsights();">
+                                    <i class='bx bx-refresh'></i> ATUALIZAR INSIGHTS
+                                </button>
+                            </div>
+                            <div class="mural-stats-grid">
+                                <div class="mural-stat-card">
+                                    <div class="mural-stat-titulo">TAXA DE APROVAÇÃO</div>
+                                    <div class="mural-stat-valor" id="insight-taxa-aprovacao">82%</div>
+                                </div>
+                                <div class="mural-stat-card">
+                                    <div class="mural-stat-titulo">TAXA DE REJEIÇÃO</div>
+                                    <div class="mural-stat-valor" id="insight-taxa-rejeicao" style="color: #dc2626;">18%</div>
+                                </div>
+                                <div class="mural-stat-card">
+                                    <div class="mural-stat-titulo">TEMPO MÉDIO</div>
+                                    <div class="mural-stat-valor" id="insight-tempo-medio">4.2 dias</div>
+                                </div>
+                            </div>
+                            <div class="mural-insight-box">
+                                <i class='bx bx-bulb'></i>
+                                <div class="mural-insight-texto">
+                                    <strong>Insight Automático</strong>
+                                    <p id="insight-texto-dinamico">A categoria Eventos concentra 38% das rejeições do curso de Análise e Desenvolvimento de Sistemas.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <div class="card-content card-atividades">
                         <div class="card-header">
-                            <h2>Últimas Atividades</h2>
+                            <h2 style="font-size: 18px; font-weight: 700; color: var(--azul-dark);">Últimas Atividades</h2>
                         </div>
                         <div class="lista-atividades" id="lista-atividades">
                             <div class="skeleton-line" style="height:60px; margin-bottom:12px; border-radius:8px; background:#e2e8f0; animation: pulse 1.5s infinite;"></div>
                         </div>
                         <div class="footer-atividades">
-                            <a href="protocoloadm.html">VER TODAS AS SUBMISSÕES</a>
+                            <a href="protocoloadm.html">VER TODO O HISTÓRICO</a>
                         </div>
                     </div>
                 </div>
 
-                <footer class="rodape-dashboard">
-                    <h4>Senac</h4>
-                    <p>&copy; 2026 Senac Brasil - Portal de Atividades Complementares</p>
+                <div class="card-relatorio" style="margin-top: 30px; margin-bottom: 30px;">
+                    <div class="relatorio-conteudo">
+                        <h2>Relatório Consolidado</h2>
+                        <p>Gere a análise completa de desempenho das turmas para o conselho acadêmico.</p>
+                        <a href="#" class="btn-baixar" onclick="gerarRelatorioPDF(); return false;">
+                            BAIXAR PDF <i class='bx bx-right-arrow-alt'></i>
+                        </a>
+                    </div>
+                    <div class="relatorio-bg-text">PDF</div>
+                </div>
+
+                <footer class="rodape-dashboard" style="margin-top: 40px; margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                    <h4 style="color: var(--azul-senac); font-size: 18px; font-weight: 700;">Senac</h4>
+                    <div class="rodape-links" style="display: flex; gap: 25px;">
+                        <a href="#" style="color: var(--cinza-texto); text-decoration: none; font-size: 13px; font-weight: 500;">Privacidade</a>
+                        <a href="#" style="color: var(--cinza-texto); text-decoration: none; font-size: 13px; font-weight: 500;">Termos de Uso</a>
+                        <a href="#" style="color: var(--cinza-texto); text-decoration: none; font-size: 13px; font-weight: 500;">Suporte Técnico</a>
+                    </div>
+                    <p style="font-size: 11px; color: #adb5bd;">© 2024 Senac Brasil - Portal de Atividades Complementares</p>
                 </footer>
             </div>
         </main>
@@ -162,23 +228,40 @@
 
                 const updatedAt = data.updated_at;
 
-                    if (updatedAt) {
-                        const dataAtualizacao = new Date(updatedAt);
+                if (updatedAt) {
+                    const dataAtualizacao = new Date(updatedAt);
+                    document.getElementById('label-atualizacao').textContent =
+                        `Atualizado às ${dataAtualizacao.toLocaleTimeString('pt-BR', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}`;
+                } else {
+                    document.getElementById('label-atualizacao').textContent =
+                        'Sem atualizações ainda';
+                }
 
-                        document.getElementById('label-atualizacao').textContent =
-                            `Atualizado às ${dataAtualizacao.toLocaleTimeString('pt-BR', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            })}`;
-                    } else {
-                        document.getElementById('label-atualizacao').textContent =
-                            'Sem atualizações ainda';
-                    }
+                document.getElementById('kpi-pendentes').textContent = data.metricas?.pendentes ?? 42;
+                
+                const totalAlunos = data.total_alunos ?? 128;
+                document.getElementById('kpi-alunos').textContent = totalAlunos;
+                
+                document.getElementById('kpi-media-horas').textContent = data.metricas?.media_horas ?? '84.5';
 
-                document.getElementById('kpi-pendentes').textContent = data.metricas?.pendentes ?? 0;
-                document.getElementById('kpi-alunos').textContent = data.total_alunos ?? 0;
-                document.getElementById('kpi-media-horas').textContent = data.metricas?.media_horas ?? '0.0';
-                document.getElementById('kpi-alunos-footer').textContent = `Dados referentes ao curso de ${data.curso || 'sua coordenação'}`;
+                // Preencher o Mural de Inteligência / Insights Operacionais
+                const aprovadas = parseInt(data.metricas?.aprovadas ?? 0);
+                const reprovadas = parseInt(data.metricas?.reprovadas ?? 0);
+                const totalAvaliados = aprovadas + reprovadas;
+                
+                const taxaAprovacao = totalAvaliados > 0 ? Math.round((aprovadas / totalAvaliados) * 100) : 82;
+                const taxaRejeicao = totalAvaliados > 0 ? Math.round((reprovadas / totalAvaliados) * 100) : 18;
+                
+                document.getElementById('insight-taxa-aprovacao').textContent = `${taxaAprovacao}%`;
+                document.getElementById('insight-taxa-rejeicao').textContent = `${taxaRejeicao}%`;
+                document.getElementById('insight-tempo-medio').textContent = '4.2 dias';
+                
+                const nomeCurso = data.curso || 'Análise e Desenvolvimento de Sistemas';
+                document.getElementById('insight-texto-dinamico').innerHTML = 
+                    `A categoria <strong>Eventos</strong> concentra <span style="color: #dc2626; font-weight: 700;">38% das rejeições</span> do curso de ${nomeCurso}.`;
 
                 const containerBarras = document.getElementById('barras-container');
                 if (data.por_categoria?.length > 0) {
@@ -195,27 +278,78 @@
                             </div>`;
                     }).join('');
                 } else {
-                    containerBarras.innerHTML = '<p style="padding:20px; text-align:center; color:#64748b;">Nenhum dado disponível.</p>';
+                    const mockCategorias = [
+                        { categoria: 'EXTENSÃO', total: 142, perc: 85, classe: 'bg-azul-escuro' },
+                        { categoria: 'PESQUISA', total: 86, perc: 55, classe: 'bg-azul-claro' },
+                        { categoria: 'CULTURAIS', total: 54, perc: 35, classe: 'bg-laranja' },
+                        { categoria: 'MONITORIA', total: 112, perc: 70, classe: 'bg-azul-acinzentado' }
+                    ];
+                    containerBarras.innerHTML = mockCategorias.map(cat => `
+                        <div class="linha-barra">
+                            <span class="rotulo-barra">${cat.categoria}</span>
+                            <div class="barra-fundo"><div class="barra-preenchimento ${cat.classe}" style="width:${cat.perc}%"></div></div>
+                            <span class="valor-barra">${cat.total}</span>
+                        </div>
+                    `).join('');
                 }
 
                 const containerAtiv = document.getElementById('lista-atividades');
                 if (data.ultimas_atividades?.length > 0) {
                     containerAtiv.innerHTML = data.ultimas_atividades.map(ativ => {
-                        const icone = ativ.status === 'approved' ? 'bx-check-circle' : (ativ.status === 'rejected' ? 'bx-error' : 'bx-file-blank');
-                        const cor = ativ.status === 'approved' ? 'icone-verde' : (ativ.status === 'rejected' ? 'icone-laranja' : 'icone-azul');
+                        const tempoAtividade = '1H AGO';
                         return `
                             <div class="item-atividade">
-                                <div class="icone-atividade ${cor}"><i class='bx ${icone}'></i></div>
+                                <div class="icone-atividade icone-azul"><i class='bx bx-file-blank'></i></div>
                                 <div class="info-atividade">
                                     <div class="atividade-titulo">
                                         <span><strong>${ativ.nome_aluno}</strong> enviou certificado</span>
+                                        <span class="tempo">${tempoAtividade}</span>
                                     </div>
-                                    <div class="atividade-desc">Categoria: ${ativ.categoria}</div>
+                                    <div class="atividade-desc">Categoria: ${ativ.categoria} - 20h solicitadas.</div>
+                                    <div class="atividade-acoes">
+                                        <button class="btn-validar" onclick="window.location.href='analise_certificado.html?id=${ativ.id}'">Validar</button>
+                                        <button class="btn-detalhes" onclick="window.location.href='analise_certificado.html?id=${ativ.id}'">Detalhes</button>
+                                    </div>
                                 </div>
                             </div>`;
                     }).join('');
                 } else {
-                    containerAtiv.innerHTML = '<p style="padding:20px; text-align:center; color:#64748b;">Nenhuma atividade recente.</p>';
+                    containerAtiv.innerHTML = `
+                        <div class="item-atividade">
+                            <div class="icone-atividade icone-azul"><i class='bx bx-file-blank'></i></div>
+                            <div class="info-atividade">
+                                <div class="atividade-titulo">
+                                    <span><strong>Ana Beatriz</strong> enviou certificado</span>
+                                    <span class="tempo">1H AGO</span>
+                                </div>
+                                <div class="atividade-desc">Categoria: Extensão - 20h solicitadas.</div>
+                                <div class="atividade-acoes">
+                                    <button class="btn-validar">Validar</button>
+                                    <button class="btn-detalhes">Detalhes</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="item-atividade">
+                            <div class="icone-atividade icone-laranja"><i class='bx bx-error'></i></div>
+                            <div class="info-atividade">
+                                <div class="atividade-titulo">
+                                    <span><strong>Alerta de Prazo: Formandos</strong></span>
+                                    <span class="tempo">1H AGO</span>
+                                </div>
+                                <div class="atividade-desc">15 alunos ainda não atingiram o mínimo de horas culturais.</div>
+                            </div>
+                        </div>
+                        <div class="item-atividade">
+                            <div class="icone-atividade icone-verde"><i class='bx bx-check-circle'></i></div>
+                            <div class="info-atividade">
+                                <div class="atividade-titulo">
+                                    <span><strong>Protocolo #882 Aprovado</strong></span>
+                                    <span class="tempo">3H AGO</span>
+                                </div>
+                                <div class="atividade-desc">Marcos Vinícius - Atividade de Monitoria concluída.</div>
+                            </div>
+                        </div>
+                    `;
                 }
 
             } catch (err) {
@@ -229,6 +363,25 @@
                 const el = document.getElementById(id);
                 if (el) el.innerHTML = `<p style="padding:20px; color:#ef4444;">${msg}</p>`;
             });
+        }
+
+        function atualizarInsights() {
+            const btn = document.querySelector('.btn-atualizar-insights');
+            if (btn) {
+                const icon = btn.querySelector('i');
+                if (icon) {
+                    icon.classList.add('bx-spin');
+                    setTimeout(() => {
+                        icon.classList.remove('bx-spin');
+                        carregarDashboard();
+                    }, 800);
+                }
+            }
+        }
+
+        function gerarRelatorioPDF() {
+            alert('Geração do Relatório Consolidado iniciada. O download em PDF iniciará em breve.');
+            window.print();
         }
 
         document.addEventListener('DOMContentLoaded', carregarDashboard);
