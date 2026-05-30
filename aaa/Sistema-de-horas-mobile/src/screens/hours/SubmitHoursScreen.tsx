@@ -43,9 +43,27 @@ export default function SubmitHoursScreen({ navigation }: Props) {
       .catch(err => console.error('Erro ao carregar categorias:', err));
   }, []);
 
+  const handleHorasChange = (text: string) => {
+    // Remove qualquer caractere não numérico
+    const cleanText = text.replace(/[^0-9]/g, '');
+    // Limita a no máximo 2 dígitos
+    const limitedText = cleanText.substring(0, 2);
+    // Impede começar com zero
+    if (limitedText.startsWith('0')) {
+      setHoras(limitedText.substring(1));
+      return;
+    }
+    setHoras(limitedText);
+  };
+
   const handleContinue = () => {
     if (!titulo || !categoriaId || !horas || !descricao) {
       setError('Por favor, preencha todos os campos obrigatórios.');
+      return;
+    }
+    const parsedHoras = parseInt(horas, 10);
+    if (isNaN(parsedHoras) || parsedHoras < 1 || parsedHoras > 99) {
+      setError('A carga horária deve ser um número de 1 a 99.');
       return;
     }
     if (!courseId) {
@@ -58,7 +76,7 @@ export default function SubmitHoursScreen({ navigation }: Props) {
       category_id: categoriaId,
       title: titulo,
       description: descricao,
-      requested_hours: parseFloat(horas),
+      requested_hours: parsedHoras,
       category_name: categoria,
     });
   };
@@ -141,9 +159,10 @@ export default function SubmitHoursScreen({ navigation }: Props) {
                   style={styles.textInput}
                   placeholder="Ex: 40"
                   placeholderTextColor="#9CA3AF"
-                  keyboardType="numeric"
+                  keyboardType="number-pad"
                   value={horas}
-                  onChangeText={setHoras}
+                  onChangeText={handleHorasChange}
+                  maxLength={2}
                 />
                 <Ionicons name="time-outline" size={20} color="#6B7280" />
               </View>
