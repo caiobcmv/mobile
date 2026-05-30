@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,15 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
-  Platform,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
 import { RootStackParamList } from '../../types';
+import { hoursService, AppNotification } from '../../services/api/hoursService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Notifications'>;
 
@@ -19,9 +22,58 @@ type NotificationType = 'todas' | 'aprovadas' | 'pendentes' | 'reprovadas';
 
 export default function NotificationsScreen({ navigation }: Props) {
   const [activeTab, setActiveTab] = useState<NotificationType>('todas');
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [loading, setLoading] = useState(true);
   const insets = useSafeAreaInsets();
 
-  // Filtros (Chips)
+  const fetchNotifications = useCallback(() => {
+    let isMounted = true;
+    setLoading(true);
+    hoursService.getNotificacoes()
+      .then(({ data }) => {
+        if (isMounted) {
+          setNotifications(data);
+          setLoading(false);
+        }
+      })
+      .catch(err => {
+        console.error('Erro ao buscar notificações:', err);
+        if (isMounted) setLoading(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useFocusEffect(fetchNotifications);
+
+  const handleMarkAllRead = () => {
+    hoursService.marcarTodasLidas()
+      .then(() => {
+        setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+        Alert.alert('Sucesso', 'Todas as notificações foram marcadas como lidas.');
+      })
+      .catch(err => {
+        console.error('Erro ao marcar como lidas:', err);
+        Alert.alert('Erro', 'Não foi possível marcar todas como lidas.');
+      });
+  };
+
+  const filteredNotifications = notifications.filter(item => {
+    if (activeTab === 'todas') return true;
+    if (activeTab === 'aprovadas') return item.type === 'submission_approved';
+    if (activeTab === 'reprovadas') return item.type === 'submission_rejected';
+    if (activeTab === 'pendentes') {
+      return item.type === 'submission_created' || 
+             item.type === 'submission_updated' || 
+             item.type === 'submission_returned';
+    }
+    return true;
+  });
+
+  const unreadNotifications = filteredNotifications.filter(n => !n.is_read);
+  const readNotifications = filteredNotifications.filter(n => n.is_read);
+
   const TABS: { id: NotificationType; label: string }[] = [
     { id: 'todas', label: 'Todas' },
     { id: 'aprovadas', label: 'Aprovadas' },
@@ -29,158 +81,196 @@ export default function NotificationsScreen({ navigation }: Props) {
     { id: 'reprovadas', label: 'Reprovadas' },
   ];
 
+  const formatTime = (isoString: string) => {
+    try {
+      const date = new Date(isoString);
+      const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+      const diffMins = Math.floor(diffMs / 60000);
+      if (diffMins < 1) return 'Agora mesmo';
+      if (diffMins < 60) return `Há ${diffMins} min`;
+      const diffHrs = Math.floor(diffMins / 60);
+      if (diffHrs < 24) return `Há ${diffHrs} h`;
+      const diffDays = Math.floor(diffHrs / 24);
+      if (diffDays === 1) return 'Ontem';
+      return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+    } catch {
+      return '';
+    }
+  };
+
+  const getNotificationStyle = (type: AppNotification['type']) => {
+    switch (type) {
+      case 'submission_approved':
+        return {
+          icon: 'checkmark' as const,
+          iconColor: '#059669',
+          iconBg: '#D1FAE5',
+          borderColor: '#10B981',
+          defaultTitle: 'Atividade Aprovada',
+        };
+      case 'submission_rejected':
+        return {
+          icon: 'close' as const,
+          iconColor: '#B91C1C',
+          iconBg: '#FEE2E2',
+          borderColor: '#DC2626',
+          defaultTitle: 'Atividade Reprovada',
+        };
+      case 'submission_returned':
+        return {
+          icon: 'warning' as const,
+          iconColor: '#D97706',
+          iconBg: '#FEF3C7',
+          borderColor: '#F59E0B',
+          defaultTitle: 'Devolvida para Ajuste',
+        };
+      case 'submission_created':
+      case 'submission_updated':
+      default:
+        return {
+          icon: 'document-text' as const,
+          iconColor: '#0284C7',
+          iconBg: '#E0F2FE',
+          borderColor: '#3B82F6',
+          defaultTitle: 'Atualização de Atividade',
+        };
+    }
+  };
+
+  const renderCard = (item: AppNotification) => {
+    const styleInfo = getNotificationStyle(item.type);
+    const isUnread = !item.is_read;
+
+    return (
+      <View
+        key={item.id}
+        style={[
+          styles.notificationCard,
+          {
+            borderLeftColor: isUnread ? styleInfo.borderColor : 'transparent',
+            paddingLeft: isUnread ? 12 : 16,
+          },
+        ]}
+      >
+        <View style={[styles.iconContainer, { backgroundColor: styleInfo.iconBg }]}>
+          <Ionicons name={styleInfo.icon} size={20} color={styleInfo.iconColor} />
+        </View>
+        <View style={styles.cardContent}>
+          <Text style={styles.cardTitle}>{item.title || styleInfo.defaultTitle}</Text>
+          <Text style={styles.cardDescription}>
+            {item.message || 'Houve uma nova atualização no status da sua atividade.'}
+          </Text>
+          <Text style={styles.cardTime}>{formatTime(item.created_at)}</Text>
+        </View>
+        {isUnread && <View style={styles.unreadDot} />}
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F7F9FC" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       {/* ── HEADER ── */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <View style={styles.avatarPlaceholder} />
+          <View style={styles.avatarPlaceholder}>
+            <Ionicons name="notifications" size={18} color="#1B3A6B" />
+          </View>
           <Text style={styles.headerTitle}>Notificações</Text>
         </View>
       </View>
 
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* ── CHIPS (TABS) ── */}
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false} 
-          style={styles.chipsScroll}
-          contentContainerStyle={styles.chipsContainer}
+      {loading ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F8FAFC' }}>
+          <ActivityIndicator size="large" color="#1B3A6B" />
+          <Text style={{ marginTop: 12, color: '#6B7280' }}>Carregando notificações...</Text>
+        </View>
+      ) : (
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
         >
-          {TABS.map((tab) => (
-            <TouchableOpacity
-              key={tab.id}
-              style={[styles.chip, activeTab === tab.id && styles.chipActive]}
-              onPress={() => setActiveTab(tab.id)}
-            >
-              <Text style={[styles.chipText, activeTab === tab.id && styles.chipTextActive]}>
-                {tab.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+          {/* ── CHIPS (TABS) ── */}
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false} 
+            style={styles.chipsScroll}
+            contentContainerStyle={styles.chipsContainer}
+          >
+            {TABS.map((tab) => (
+              <TouchableOpacity
+                key={tab.id}
+                style={[styles.chip, activeTab === tab.id && styles.chipActive]}
+                onPress={() => setActiveTab(tab.id)}
+              >
+                <Text style={[styles.chipText, activeTab === tab.id && styles.chipTextActive]}>
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
 
-        {/* ── RECENTES ── */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recentes</Text>
-          <TouchableOpacity>
-            <Text style={styles.markAllReadText}>Marcar todas como lidas</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Card 1: Aprovada */}
-        <View style={[styles.notificationCard, { borderLeftColor: '#10B981' }]}>
-          <View style={[styles.iconContainer, { backgroundColor: '#D1FAE5' }]}>
-            <Ionicons name="checkmark" size={20} color="#059669" />
-          </View>
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>Atividade Aprovada</Text>
-            <Text style={styles.cardDescription}>
-              Certificado de Inglês (40h) foi validado com sucesso.
-            </Text>
-            <Text style={styles.cardTime}>Há 5 minutos</Text>
-          </View>
-          <View style={styles.unreadDot} />
-        </View>
-
-        {/* Card 2: Feedback */}
-        <View style={[styles.notificationCard, { borderLeftColor: '#F59E0B' }]}>
-          <View style={[styles.iconContainer, { backgroundColor: '#FEF3C7' }]}>
-            <Ionicons name="chatbubble" size={18} color="#D97706" />
-          </View>
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>Feedback Recebido</Text>
-            <Text style={styles.cardDescription}>
-              Seu relatório da Palestra Acadêmica recebeu um novo comentário do tutor.
-            </Text>
-            <Text style={styles.cardTime}>Há 2 horas</Text>
-          </View>
-          <View style={styles.unreadDot} />
-        </View>
-
-        {/* Card 3: Reprovada */}
-        <View style={[styles.notificationCard, { borderLeftColor: '#DC2626' }]}>
-          <View style={[styles.iconContainer, { backgroundColor: '#FEE2E2' }]}>
-            <Ionicons name="close" size={20} color="#B91C1C" />
-          </View>
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>Atividade Reprovada</Text>
-            <Text style={styles.cardDescription}>
-              O documento 'Relatório de Estágio' não atende aos requisitos.
-            </Text>
-            <Text style={styles.cardTime}>Há 3 horas</Text>
-          </View>
-          <View style={styles.unreadDot} />
-        </View>
-
-        {/* Card 4: Lembrete com Progress Bar */}
-        <View style={[styles.notificationCard, { borderLeftColor: '#DC2626' }]}>
-          <View style={[styles.iconContainer, { backgroundColor: '#FEE2E2' }]}>
-            <Ionicons name="warning" size={18} color="#B91C1C" />
-          </View>
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>Lembrete de Meta</Text>
-            <Text style={styles.cardDescription}>
-              Faltam 20h para concluir sua meta de horas complementares do semestre.
-            </Text>
-            <View style={styles.progressBarBg}>
-              <View style={[styles.progressBarFill, { width: '70%' }]} />
+          {/* ── RECENTES ── */}
+          {unreadNotifications.length > 0 && (
+            <View>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Recentes</Text>
+                <TouchableOpacity onPress={handleMarkAllRead}>
+                  <Text style={styles.markAllReadText}>Marcar todas como lidas</Text>
+                </TouchableOpacity>
+              </View>
+              {unreadNotifications.map(renderCard)}
             </View>
-            <Text style={styles.cardTime}>Há 4 horas</Text>
-          </View>
-          <View style={styles.unreadDot} />
-        </View>
+          )}
 
-        {/* ── ANTERIORES ── */}
-        <View style={[styles.sectionHeader, { marginTop: 12 }]}>
-          <Text style={styles.sectionTitle}>Anteriores</Text>
-        </View>
+          {/* ── ANTERIORES ── */}
+          {readNotifications.length > 0 && (
+            <View style={{ marginTop: unreadNotifications.length > 0 ? 12 : 0 }}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Anteriores</Text>
+              </View>
+              {readNotifications.map(renderCard)}
+            </View>
+          )}
 
-        {/* Card 5: Lida (sem borda colorida e sem bolinha) */}
-        <View style={[styles.notificationCard, { borderLeftColor: 'transparent', paddingLeft: 16 }]}>
-          <View style={[styles.iconContainer, { backgroundColor: '#F3F4F6' }]}>
-            <Ionicons name="calendar-outline" size={20} color="#6B7280" />
-          </View>
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>Aula Cancelada</Text>
-            <Text style={styles.cardDescription}>
-              A aula de 'Gestão de Projetos' do dia 15/10 foi reagendada.
-            </Text>
-            <Text style={styles.cardTime}>Ontem</Text>
-          </View>
-        </View>
+          {notifications.length === 0 && (
+            <View style={{ paddingVertical: 40, alignItems: 'center' }}>
+              <Ionicons name="notifications-off-outline" size={48} color="#9CA3AF" />
+              <Text style={{ color: '#6B7280', fontSize: 15, marginTop: 12, fontStyle: 'italic' }}>
+                Nenhuma notificação encontrada.
+              </Text>
+            </View>
+          )}
 
-        <View style={{ height: 100 }} />
-      </ScrollView>
+          <View style={{ height: 100 }} />
+        </ScrollView>
+      )}
 
       {/* ── BOTTOM TAB BAR ── */}
       <View style={[styles.bottomTabBar, { paddingBottom: insets.bottom > 0 ? insets.bottom : 8 }]}>
         <TouchableOpacity style={styles.bottomTabItem} onPress={() => navigation.navigate('Dashboard')}>
-          <Ionicons name="grid-outline" size={24} color="#9CA3AF" />
+          <Ionicons name="grid-outline" size={20} color="#9CA3AF" />
           <Text style={styles.bottomTabLabel}>Dashboard</Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.bottomTabItem} onPress={() => navigation.navigate('HoursList')}>
-          <Ionicons name="reader-outline" size={24} color="#9CA3AF" />
+          <Ionicons name="clipboard-outline" size={20} color="#9CA3AF" />
           <Text style={styles.bottomTabLabel}>Atividades</Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.bottomTabItem}>
-          <Ionicons name="notifications" size={24} color="#1B3A6B" />
-          <Text style={[styles.bottomTabLabel, { color: '#1B3A6B', fontWeight: '600' }]}>Alertas</Text>
+          <Ionicons name="notifications" size={20} color="#1B3A6B" />
+          <Text style={[styles.bottomTabLabel, { color: '#1B3A6B', fontWeight: '700' }]}>Alertas</Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
           style={styles.bottomTabItem}
           onPress={() => navigation.navigate('Profile')}
         >
-          <Ionicons name="person-outline" size={24} color="#9CA3AF" />
+          <Ionicons name="person-outline" size={20} color="#9CA3AF" />
           <Text style={styles.bottomTabLabel}>Perfil</Text>
         </TouchableOpacity>
       </View>
@@ -191,7 +281,7 @@ export default function NotificationsScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F7F9FC',
+    backgroundColor: '#F8FAFC',
   },
   
   // ── HEADER ──
@@ -202,7 +292,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: '#F1F5F9',
   },
   headerLeft: {
     flexDirection: 'row',
@@ -216,9 +306,11 @@ const styles = StyleSheet.create({
     borderColor: '#1B3A6B',
     backgroundColor: '#FFFFFF',
     marginRight: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: '#1B3A6B',
   },
@@ -234,27 +326,27 @@ const styles = StyleSheet.create({
 
   // ── CHIPS (TABS) ──
   chipsScroll: {
-    marginBottom: 24,
+    marginBottom: 20,
   },
   chipsContainer: {
     gap: 8,
-    paddingRight: 16, // Para não colar na borda direita no final do scroll
+    paddingRight: 16,
   },
   chip: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#E2E8F0',
     backgroundColor: '#FFFFFF',
   },
   chipActive: {
-    backgroundColor: '#00478F',
-    borderColor: '#00478F',
+    backgroundColor: '#1B3A6B',
+    borderColor: '#1B3A6B',
   },
   chipText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#64748B',
     fontWeight: '500',
   },
   chipTextActive: {
@@ -269,13 +361,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
+    color: '#1E293B',
   },
   markAllReadText: {
     fontSize: 13,
-    color: '#00478F',
+    color: '#F97316',
     fontWeight: '600',
   },
 
@@ -285,12 +377,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
-    paddingLeft: 12, // espaço para a borda colorida
+    paddingLeft: 12,
     marginBottom: 12,
     borderLeftWidth: 4,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
+    shadowOpacity: 0.02,
     shadowRadius: 4,
     elevation: 1,
   },
@@ -307,41 +401,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cardTitle: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
-    color: '#111827',
+    color: '#1E293B',
     marginBottom: 4,
   },
   cardDescription: {
-    fontSize: 14,
-    color: '#4B5563',
-    lineHeight: 20,
+    fontSize: 13,
+    color: '#475569',
+    lineHeight: 18,
     marginBottom: 6,
   },
   cardTime: {
-    fontSize: 12,
-    color: '#9CA3AF',
+    fontSize: 11,
+    color: '#94A3B8',
   },
   unreadDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#F59E0B', // Laranja
+    backgroundColor: '#F59E0B',
     marginLeft: 8,
     marginTop: 4,
-  },
-  progressBarBg: {
-    height: 4,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 2,
-    overflow: 'hidden',
-    marginTop: 4,
-    marginBottom: 8,
-  },
-  progressBarFill: {
-    height: '100%',
-    backgroundColor: '#F59E0B',
-    borderRadius: 2,
   },
 
   // ── BOTTOM TAB BAR ──
@@ -353,8 +434,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-    paddingTop: 8,
+    borderTopColor: '#F1F5F9',
+    paddingTop: 10,
   },
   bottomTabItem: {
     alignItems: 'center',

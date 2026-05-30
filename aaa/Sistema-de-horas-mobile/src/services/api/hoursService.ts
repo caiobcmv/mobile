@@ -41,11 +41,27 @@ export interface MeusDadosResponse {
   horas_aprovadas: number;
 }
 
+export interface AppNotification {
+  id: number;
+  user_id: number;
+  submission_id?: number | null;
+  type: 'submission_created' | 'submission_updated' | 'submission_approved' | 'submission_rejected' | 'submission_returned' | 'system_alert';
+  title: string;
+  message?: string | null;
+  is_read: boolean;
+  created_at: string;
+  read_at?: string | null;
+}
+
 export const hoursService = {
   getAll: (status?: string, courseId?: string) =>
     api.get<HourSubmission[]>('/aluno/submissoes', {
       params: { status, course_id: courseId },
     }),
+
+  getNotificacoes: () => api.get<AppNotification[]>('/aluno/notificacoes'),
+
+  marcarTodasLidas: () => api.post<{ mensagem: string }>('/aluno/notificacoes/ler-todas'),
 
   create: (payload: CreateSubmissionPayload) =>
     api.post<{ mensagem: string; submissao: HourSubmission }>('/aluno/submissao', payload),

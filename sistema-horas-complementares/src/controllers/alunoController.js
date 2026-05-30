@@ -449,3 +449,33 @@ exports.getMeusCursos = async (req, res) => {
         res.status(500).json({ erro: err.message });
     }
 };
+
+exports.getNotificacoes = async (req, res) => {
+    const user_id = req.usuario.id;
+    try {
+        const resultado = await pool.query(
+            `SELECT * FROM notifications
+             WHERE user_id = $1
+             ORDER BY created_at DESC`,
+            [user_id]
+        );
+        res.status(200).json(resultado.rows);
+    } catch (err) {
+        res.status(500).json({ erro: err.message });
+    }
+};
+
+exports.postMarcarLidas = async (req, res) => {
+    const user_id = req.usuario.id;
+    try {
+        await pool.query(
+            `UPDATE notifications
+             SET is_read = true, read_at = NOW()
+             WHERE user_id = $1 AND is_read = false`,
+            [user_id]
+        );
+        res.status(200).json({ mensagem: "Todas as notificações marcadas como lidas." });
+    } catch (err) {
+        res.status(500).json({ erro: err.message });
+    }
+};
