@@ -6,9 +6,7 @@ node_modules/
 .env
 **/.env
 
-# Uploads de arquivos (mantém a pasta, ignora o conteúdo)
-backend/uploads/*
-!backend/uploads/.gitkeep
+# Uploads — dados fictícios, incluídos no repositório
 
 # Logs
 *.log
