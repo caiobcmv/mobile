@@ -26,7 +26,7 @@ function acessarPortal() {
         return;
     }
 
-    fetch('/auth/login', {
+    fetch(API + '/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, senha })
@@ -311,7 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Nome ausente (sessão antiga) — tenta buscar via API
         const token = localStorage.getItem('token');
         if (token) {
-            fetch('/auth/me', {
+            fetch(API + '/auth/me', {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
             .then(r => r.ok ? r.json() : null)

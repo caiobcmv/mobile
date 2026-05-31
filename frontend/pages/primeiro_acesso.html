@@ -112,7 +112,7 @@
 
             try {
                 // Call primeiro-acesso endpoint
-                const res = await fetch('/auth/primeiro-acesso', {
+                const res = await fetch(API + '/auth/primeiro-acesso', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

@@ -5,18 +5,33 @@ const jwt = require('jsonwebtoken');
 exports.login = async (req, res) => {
      console.log('Entrou no login');
     const { email, senha } = req.body;
-    console.log('Login tentativa:', email);
-
     try {
-        const resultado = await pool.query(
-            `SELECT u.*, array_agg(r.name) AS roles
-             FROM users u
-             JOIN user_roles ur ON ur.user_id = u.id
-             JOIN roles r ON r.id = ur.role_id
-             WHERE u.email = $1 AND u.status = 'active'
-             GROUP BY u.id`,
-            [email]
-        );
+        const identificador = email ? email.trim() : '';
+        const isEmail = identificador.includes('@');
+        
+        let resultado;
+        if (isEmail) {
+            resultado = await pool.query(
+                `SELECT u.*, array_agg(r.name) AS roles
+                 FROM users u
+                 JOIN user_roles ur ON ur.user_id = u.id
+                 JOIN roles r ON r.id = ur.role_id
+                 WHERE u.email = $1 AND u.status = 'active'
+                 GROUP BY u.id`,
+                [identificador]
+            );
+        } else {
+            const cpfLimpo = identificador.replace(/\D/g, '');
+            resultado = await pool.query(
+                `SELECT u.*, array_agg(r.name) AS roles
+                 FROM users u
+                 JOIN user_roles ur ON ur.user_id = u.id
+                 JOIN roles r ON r.id = ur.role_id
+                 WHERE (u.cpf = $1 OR REGEXP_REPLACE(u.cpf, '\\D', '', 'g') = $2) AND u.status = 'active'
+                 GROUP BY u.id`,
+                [identificador, cpfLimpo]
+            );
+        }
 
         const usuario = resultado.rows[0];
 

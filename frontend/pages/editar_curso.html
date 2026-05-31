@@ -313,7 +313,7 @@
                     is_active: isAtivo
                 };
 
-                const resp = await fetch(`/admin/curso/${cursoId}`, {
+                const resp = await fetch(`${API}/admin/curso/${cursoId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify(body)
@@ -334,7 +334,7 @@
             if (!confirm(`Tem certeza que deseja excluir o curso "${cursoAtual?.name}"? Esta ação não pode ser desfeita.`)) return;
             try {
                 const token = localStorage.getItem('token');
-                const resp = await fetch(`/admin/curso/${cursoId}`, {
+                const resp = await fetch(`${API}/admin/curso/${cursoId}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
