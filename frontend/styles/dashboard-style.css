@@ -1,0 +1,284 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+    --azul-senac: #004a8e;
+    --laranja-senac: #f6821f;
+    --branco: #ffffff;
+    --fundo-pagina: #f8fafc;
+    --texto-suave: #64748b;
+    --azul-escuro: #1a2e5a;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Outfit', 'Inter', sans-serif;
+}
+
+body {
+    background-color: var(--fundo-pagina);
+    color: var(--azul-escuro);
+}
+
+.conteudo-principal {
+    background-color: var(--fundo-pagina);
+}
+
+/* Cabeçalho superior - Tabs de navegação */
+.cabecalho-topo {
+    margin-bottom: 30px;
+}
+
+.topo-links {
+    display: flex;
+    gap: 30px;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 10px;
+}
+
+.topo-links a {
+    text-decoration: none;
+    color: #64748b;
+    font-weight: 700;
+    font-size: 14px;
+    transition: 0.2s;
+    position: relative;
+    padding-bottom: 10px;
+}
+
+.topo-links a.active {
+    color: #004a8e;
+}
+
+.topo-links a.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #f6821f;
+    border-radius: 2px;
+}
+
+.topo-links a:hover:not(.active) {
+    color: #004a8e;
+}
+
+.acoes-usuario {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.caixa-busca {
+    background: #f1f5f9;
+    padding: 8px 15px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.caixa-busca input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 13px;
+}
+
+.botao-novo {
+    background: var(--azul-senac);
+    color: var(--branco);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* Títulos e boas-vindas */
+.secao-boas-vindas h1 {
+    font-size: 32px;
+    font-weight: 800;
+    margin: 5px 0;
+}
+
+.etiqueta-laranja {
+    color: var(--laranja-senac);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+/* Grade de cartões KPI */
+.grade-indicadores {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin: 2rem 0;
+}
+
+.cartao-kpi {
+    background: var(--branco);
+    padding: 1.5rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+}
+
+.topo-cartao {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--texto-suave);
+    margin-bottom: 1rem;
+}
+
+.valor-cartao h2 {
+    font-size: 38px;
+    font-family: "Poppins", sans-serif;
+    font-weight: 800;
+}
+
+.sub-valor { font-size: 12px; margin-left: 5px; }
+.sub-valor.alerta { color: #ef4444; }
+.sub-valor.estatico { color: var(--azul-senac); }
+
+/* Gráfico e Atividades */
+.grade-detalhes {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 25px;
+}
+
+.caixa-grafico, .caixa-atividades {
+    background: var(--branco);
+    padding: 2rem;
+    border-radius: 15px;
+}
+
+/* Título do gráfico colado no topo conforme solicitado */
+.caixa-grafico h3 {
+    margin-top: 0;
+    margin-bottom: 30px;
+}
+
+.linha-barra {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.nome-cat { width: 85px; }
+.fundo-barra { flex: 1; height: 18px; background: #f1f5f9; border-radius: 4px; overflow: hidden; }
+.barra-cor { height: 100%; border-radius: 4px; }
+
+.barra-cor.azul { background: var(--azul-senac); }
+.barra-cor.azul-medio { background: #3b82f6; }
+.barra-cor.laranja { background: var(--laranja-senac); }
+.barra-cor.cinza { background: #94a3b8; }
+
+.item-atv {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.btn-acao {
+    padding: 5px 12px;
+    border: 1px solid #e2e8f0;
+    background: var(--branco);
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* Container da lista */
+.lista-atv {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Estilo de cada linha da atividade */
+.item-atv {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 15px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+/* Os círculos com ícones */
+.circulo-icone {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.circulo-icone.azul { background: #e0f2fe; color: #0369a1; }
+.circulo-icone.laranja { background: #ffedd5; color: #c2410c; }
+
+/* Textos da atividade */
+.conteudo-atv { flex: 1; }
+.conteudo-atv strong { display: block; font-size: 13px; color: #1a2e5a; }
+.conteudo-atv span { font-size: 11px; color: #64748b; }
+
+/* Estilização do botão Validar (conforme o print original) */
+.btn-validar {
+    background: #004a8e;
+    color: white;
+    border: none;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+}
+
+.btn-detalhes {
+    background: #f1f5f9;
+    color: #64748b;
+    border: none;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    margin-left: 5px;
+    cursor: pointer;
+}
+
+/* Tempo lateral (2M AGO, 1H AGO) */
+.tempo-atv {
+    font-size: 10px;
+    font-weight: 700;
+    color: #94a3b8;
+    min-width: 45px;
+    text-align: right;
+}
+
+/* Link Ver Tudo no rodapé */
+.link-ver-tudo {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    font-size: 11px;
+    font-weight: 800;
+    color: #004a8e;
+    text-decoration: none;
+    letter-spacing: 0.5px;
+}

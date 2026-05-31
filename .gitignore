@@ -1,0 +1,22 @@
+# Dependências
+node_modules/
+**/node_modules/
+
+# Variáveis de ambiente sensíveis
+.env
+**/.env
+
+# Uploads de arquivos
+backend/uploads/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Build
+dist/
+build/
