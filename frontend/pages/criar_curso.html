@@ -239,7 +239,7 @@
                     turno: document.getElementById('input-turno').value || null
                 };
 
-                const resp = await fetch(API + '/admin/curso', {
+                const resp = await fetch('/admin/curso', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify(body)

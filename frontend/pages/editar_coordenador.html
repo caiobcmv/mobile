@@ -194,7 +194,7 @@
 
             try {
                 const token = localStorage.getItem('token');
-                const resp = await fetch(`${API}/admin/coordenador/${coordId}`, {
+                const resp = await fetch(`/admin/coordenador/${coordId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -217,7 +217,7 @@
             if (!confirm('Tem certeza que deseja remover este coordenador? Esta ação não pode ser desfeita.')) return;
             try {
                 const token = localStorage.getItem('token');
-                const resp = await fetch(`${API}/admin/coordenador/${coordId}`, {
+                const resp = await fetch(`/admin/coordenador/${coordId}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });

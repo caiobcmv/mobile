@@ -151,6 +151,18 @@
                     </div>
                 </div>
 
+                <!-- Card de Exportação de Relatório (Super Admin) -->
+                <div class="card-relatorio" style="margin-top: 25px; margin-bottom: 25px;">
+                    <div class="relatorio-conteudo">
+                        <h2>Relatório Consolidado</h2>
+                        <p>Baixe a planilha consolidada contendo todos os dados de alunos, status de matrícula, horas necessárias, horas integralizadas e submissões aprovadas ou pendentes em todo o sistema.</p>
+                        <a href="#" class="btn-baixar" onclick="exportarRelatorioCSV(event)">
+                            <i class='bx bx-download'></i> EXPORTAR RELATÓRIO COMPLETO (CSV)
+                        </a>
+                    </div>
+                    <div class="relatorio-bg-text">RELATÓRIO</div>
+                </div>
+
                 <footer class="rodape-dashboard">
                     <h4>Senac</h4>
                     <p>&copy; 2026 Senac Brasil - Portal de Atividades Complementares</p>
@@ -297,6 +309,11 @@
             background: linear-gradient(90deg, #f97316, #fb923c);
             transition: width 0.6s ease;
         }
+
+        .spin-animation-infinite {
+            animation: spin-refresh 1s linear infinite;
+            display: inline-block;
+        }
     </style>
 
     <script>
@@ -319,32 +336,46 @@
                 const totalAlunos = parseInt(data.total_alunos) || 1;
                 const rankingClasses = ['top1', 'top2', 'top3'];
 
-                // Usa por_categoria como proxy de cursos críticos
-                if (data.por_categoria && data.por_categoria.length > 0) {
-                    const totalEnvios = data.por_categoria.reduce((s, c) => s + parseInt(c.total), 0) || 1;
-                    const itens = data.por_categoria.slice(0, 3).map((cat, i) => {
-                        const qtd = parseInt(cat.total);
-                        const perc = Math.round((qtd / totalEnvios) * 100);
+                // Usa cursos_em_risco (dados reais do pipeline Python)
+                const cursosRisco = (data.cursos_em_risco && data.cursos_em_risco.length > 0)
+                    ? data.cursos_em_risco
+                    : null;
+
+                if (cursosRisco) {
+                    const itens = cursosRisco.map((curso, i) => {
+                        const qtd = parseInt(curso.alunos_em_risco);
+                        const perc = parseFloat(curso.percentual_risco) || 0;
                         const badgeClass = rankingClasses[i] || '';
-                        const nomeCurso = cat.categoria.toUpperCase();
+                        const nomeCurso = (curso.nome_curso || 'Curso').toUpperCase();
                         return `
                             <tr>
                                 <td><span class="ranking-badge ${badgeClass}">${i + 1}</span></td>
                                 <td><span class="curso-nome-risco">${nomeCurso}</span></td>
-                                <td><span class="risco-valor">${qtd}</span></td>
+                                <td><span class="risco-valor">${qtd} alunos</span></td>
                                 <td><span class="risco-perc">${perc}%</span></td>
                                 <td>
                                     <div class="barra-risco-wrap">
-                                        <div class="barra-risco-fill" style="width:${perc}%"></div>
+                                        <div class="barra-risco-fill" style="width:${Math.min(perc, 100)}%"></div>
                                     </div>
                                 </td>
                             </tr>`;
                     });
                     tbody.innerHTML = itens.join('');
                 } else {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:#94a3b8;">Nenhum dado disponível.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:#94a3b8;">Nenhum dado de risco disponível. Execute o pipeline analítico.</td></tr>';
                 }
                 // -----------------------------------
+
+                // Usa insight real da IA se existir
+                let insightTextoSA = '';
+                if (data.insights && data.insights.length > 0) {
+                    const insightReal = data.insights.find(i => i.perfil_destino === 'superadmin') 
+                                     || data.insights.find(i => i.perfil_destino === 'coordenador')
+                                     || data.insights[0];
+                    if (insightReal && insightReal.descricao) insightTextoSA = insightReal.descricao;
+                }
+                const elInsight = document.getElementById('insight-texto-dinamico');
+                if (elInsight && insightTextoSA) elInsight.innerHTML = insightTextoSA;
 
                 const containerBarras = document.getElementById('barras-container');
                 if (data.por_categoria?.length > 0) {
@@ -395,6 +426,53 @@
                 const el = document.getElementById(id);
                 if (el) el.innerHTML = `<tr><td colspan="5" style="padding:20px; color:#ef4444;">${msg}</td></tr>`;
             });
+        }
+
+        async function exportarRelatorioCSV(event) {
+            event.preventDefault();
+            const btn = event.currentTarget;
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = `<i class='bx bx-loader-alt spin-animation-infinite'></i> GERANDO RELATÓRIO...`;
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.7';
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${window.API}/admin/exportar-relatorio`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.status === 401) {
+                    logout();
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error('Falha ao baixar o relatório.');
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'relatorio-consolidado.csv';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } catch (err) {
+                console.error(err);
+                alert('Erro ao exportar o relatório: ' + err.message);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.style.pointerEvents = 'auto';
+                btn.style.opacity = '1';
+            }
         }
 
         document.addEventListener('DOMContentLoaded', carregarDashboard);

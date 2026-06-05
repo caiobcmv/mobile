@@ -28,7 +28,6 @@ body {
 .topo-links {
     display: flex;
     gap: 30px;
-}
     background: #f1f5f9;
     padding: 8px 16px;
     border-radius: 12px;
@@ -397,9 +396,17 @@ body {
     font-weight: 700;
     cursor: pointer;
     color: var(--texto-light);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
 }
 .btn-pag.active { background: var(--azul-main); color: white; }
-.btn-pag:hover:not(.active) { background: #f1f5f9; }
+.btn-pag:hover:not(.active):not(:disabled) { background: #f1f5f9; }
+.btn-pag:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+}
 
 /* ========== BOTTOM TIP ========== */
 .card-dica-full {
@@ -431,4 +438,35 @@ body {
 .dica-actions { display: flex; gap: 20px; }
 .dica-link-bold { font-size: 10px; font-weight: 800; color: var(--azul-main); text-decoration: none; text-transform: uppercase; }
 .dica-link-muted { font-size: 10px; font-weight: 700; color: var(--texto-light); text-decoration: none; text-transform: uppercase; }
+
+/* === BADGES DE RISCO === */
+.status-badge-risco {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+.status-badge-risco i {
+    font-size: 6px;
+}
+.status-badge-risco.risco-alto {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+.status-badge-risco.risco-medio {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #d4800a;
+}
+.status-badge-risco.risco-baixo {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+.status-badge-risco.risco-normal {
+    background-color: rgba(100, 116, 139, 0.1);
+    color: #64748b;
+}
 

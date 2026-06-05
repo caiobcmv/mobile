@@ -107,6 +107,10 @@
                     document.getElementById('input-ingresso').value = d.toLocaleDateString('pt-BR');
                 }
 
+                // Semestre
+                const inputSemestre = document.getElementById('semestreAtual');
+                if (inputSemestre) inputSemestre.value = aluno.semestre || '1';
+
             } catch (e) {
                 console.error('Erro ao carregar aluno:', e);
                 alert('Erro ao carregar dados do aluno.');
@@ -119,7 +123,8 @@
                 email: document.getElementById('emailInstitucional').value,
                 phone: document.getElementById('telefoneAluno').value,
                 cpf: document.getElementById('cpfAluno').value,
-                course_id: document.getElementById('cursoVinculado').value
+                course_id: document.getElementById('cursoVinculado').value,
+                semestre: parseInt(document.getElementById('semestreAtual').value) || 1
             };
 
             try {

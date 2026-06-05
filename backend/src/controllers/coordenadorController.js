@@ -158,7 +158,7 @@ exports.deleteRegra = async (req, res) => {
 };
 
 exports.postCadastrarAluno = async (req, res) => {
-    const { full_name, email, cpf, phone, course_id, ra, status_matricula } = req.body;
+    const { full_name, email, cpf, phone, course_id, ra, status_matricula, semestre } = req.body;
     const isSuperAdmin = req.usuario.perfis && req.usuario.perfis.includes('super_admin');
 
     if (!isSuperAdmin) {
@@ -192,8 +192,8 @@ exports.postCadastrarAluno = async (req, res) => {
         );
 
         await client.query(
-            `INSERT INTO student_profiles (user_id, ra) VALUES ($1, $2)`,
-            [userId, ra]
+            `INSERT INTO student_profiles (user_id, ra, semestre) VALUES ($1, $2, $3)`,
+            [userId, ra, semestre || 1]
         );
 
         await client.query(
@@ -203,7 +203,7 @@ exports.postCadastrarAluno = async (req, res) => {
         );
 
         await client.query('COMMIT');
-        await registrarLog(req.usuario.id, 'CRIAR_ALUNO', 'users', userId, { full_name, email, course_id, ra });
+        await registrarLog(req.usuario.id, 'CRIAR_ALUNO', 'users', userId, { full_name, email, course_id, ra, semestre });
         res.status(201).json({ mensagem: "Aluno cadastrado com sucesso!", aluno: novoUsuario.rows[0] });
     } catch (err) {
         await client.query('ROLLBACK');
@@ -232,13 +232,15 @@ exports.getAlunosDoCurso = async (req, res) => {
         const resultado = await pool.query(
             `SELECT
                 u.id, u.full_name, u.email, u.phone, u.status,
-                sp.ra,
-                uc.enrollment_date, uc.status_matricula
+                sp.ra, sp.semestre,
+                uc.enrollment_date, uc.status_matricula,
+                cr.nivel_risco
              FROM users u
              JOIN user_courses uc ON uc.user_id = u.id
              JOIN user_roles ur ON ur.user_id = u.id
              JOIN roles r ON r.id = ur.role_id
              LEFT JOIN student_profiles sp ON sp.user_id = u.id
+             LEFT JOIN vw_risco_atual cr ON cr.aluno_id = u.id AND cr.course_id = uc.course_id
              WHERE uc.course_id = $1 AND r.name = 'student' AND uc.is_active = true`,
             [course_id]
         );
@@ -251,7 +253,7 @@ exports.getAlunosDoCurso = async (req, res) => {
 exports.putAtualizarAluno = async (req, res) => {
     const { id } = req.params;
     const { 
-        full_name, email, phone, ra, status_matricula, course_id, cpf 
+        full_name, email, phone, ra, status_matricula, course_id, cpf, semestre 
     } = req.body;
 
     const client = await pool.connect();
@@ -271,14 +273,15 @@ exports.putAtualizarAluno = async (req, res) => {
             [full_name, email, phone, cpf, id]
         );
 
-        // 2. Atualizar Perfil (RA)
+        // 2. Atualizar Perfil (RA, Semestre)
         await client.query(
-            `INSERT INTO student_profiles (user_id, ra, updated_at)
-             VALUES ($1, $2, NOW())
+            `INSERT INTO student_profiles (user_id, ra, semestre, updated_at)
+             VALUES ($1, $2, $3, NOW())
              ON CONFLICT (user_id) DO UPDATE SET 
-                ra = EXCLUDED.ra, 
+                ra = COALESCE(EXCLUDED.ra, student_profiles.ra), 
+                semestre = COALESCE(EXCLUDED.semestre, student_profiles.semestre),
                 updated_at = NOW()`,
-            [id, ra]
+            [id, ra || null, semestre || null]
         );
 
         // 3. Atualizar Vínculo com Curso (Status)
@@ -293,8 +296,8 @@ exports.putAtualizarAluno = async (req, res) => {
         }
 
         await client.query('COMMIT');
-        await registrarLog(req.usuario.id, 'ATUALIZAR_ALUNO', 'users', id, { full_name, email, ra });
-        res.status(200).json({ mensagem: "Aluno atualizado!" });
+        await registrarLog(req.usuario.id, 'ATUALIZAR_ALUNO', 'users', id, { full_name, email, phone, ra, status_matricula, course_id, semestre });
+        res.status(200).json({ mensagem: "Aluno atualizado com sucesso!" });
     } catch (err) {
         await client.query('ROLLBACK');
         res.status(500).json({ erro: err.message });
@@ -308,13 +311,15 @@ exports.getAlunoById = async (req, res) => {
     try {
         const query = `
             SELECT u.id, u.full_name, u.email, u.phone, u.cpf,
-                   sp.ra,
+                   sp.ra, sp.semestre,
                    uc.course_id, uc.status_matricula, uc.enrollment_date,
-                   c.name as course_name
+                   c.name as course_name,
+                   cr.nivel_risco
             FROM users u
             LEFT JOIN student_profiles sp ON u.id = sp.user_id
             LEFT JOIN user_courses uc ON u.id = uc.user_id
             LEFT JOIN courses c ON uc.course_id = c.id
+            LEFT JOIN vw_risco_atual cr ON cr.aluno_id = u.id AND cr.course_id = uc.course_id
             WHERE u.id = $1
         `;
         const result = await pool.query(query, [id]);
@@ -398,10 +403,12 @@ exports.deleteAluno = async (req, res) => {
 
 exports.getSubmissoes = async (req, res) => {
     let { course_id } = req.params;
-    const { status, pagina = 1 } = req.query;
+    const { status, pagina } = req.query;
 
+    const paginar = (pagina !== undefined && pagina !== null && pagina !== '');
+    const numPagina = paginar ? parseInt(pagina) : 1;
     const itensPorPagina = 10;
-    const offset = (pagina - 1) * itensPorPagina;
+    const offset = (numPagina - 1) * itensPorPagina;
 
     const isSuperAdmin =
         req.usuario.perfis &&
@@ -451,7 +458,7 @@ exports.getSubmissoes = async (req, res) => {
                 return res.status(200).json({
                     submissoes: [],
                     contadores: { pendentes: 0, aprovadas: 0, reprovadas: 0, total: 0 },
-                    pagina: parseInt(pagina),
+                    pagina: paginar ? numPagina : null,
                     total_paginas: 0
                 });
             }
@@ -464,28 +471,25 @@ exports.getSubmissoes = async (req, res) => {
             filtroStatus = `
                 AND status NOT IN ('approved', 'rejected')
             `;
-
-            params.push(itensPorPagina, offset);
         } else if (status && status !== 'TODAS') {
             filtroStatus = `
                 AND status = $2::submission_status_enum
             `;
-
-            params.push(status, itensPorPagina, offset);
-        } else {
-            params.push(itensPorPagina, offset);
+            params.push(status);
         }
 
-        const resultado = await pool.query(
-            `SELECT *
+        let queryStr = `SELECT *
              FROM view_submissoes_completo
              WHERE course_id = ANY($1::bigint[])
              ${filtroStatus}
-             ORDER BY submitted_at DESC
-             LIMIT $${params.length - 1}
-             OFFSET $${params.length}`,
-            params
-        );
+             ORDER BY submitted_at DESC`;
+
+        if (paginar) {
+            params.push(itensPorPagina, offset);
+            queryStr += ` LIMIT $${params.length - 1} OFFSET $${params.length}`;
+        }
+
+        const resultado = await pool.query(queryStr, params);
 
         const contadores = await pool.query(
             `SELECT
@@ -511,10 +515,10 @@ exports.getSubmissoes = async (req, res) => {
         res.status(200).json({
             submissoes: resultado.rows,
             contadores: contadores.rows[0],
-            pagina: parseInt(pagina),
-            total_paginas: Math.ceil(
-                (parseInt(contadores.rows[0].total) || 0) / itensPorPagina
-            )
+            pagina: paginar ? numPagina : null,
+            total_paginas: paginar
+                ? Math.ceil((parseInt(contadores.rows[0].total) || 0) / itensPorPagina)
+                : null
         });
 
     } catch (err) {
@@ -552,6 +556,192 @@ exports.getSubmissaoPorId = async (req, res) => {
         res.status(500).json({
             erro: err.message
         });
+    }
+};
+
+exports.getSubmissaoNavegacao = async (req, res) => {
+    const { id } = req.params;
+    const idNum = parseInt(id);
+    if (isNaN(idNum)) {
+        return res.status(400).json({ erro: "ID de submissão inválido." });
+    }
+
+    try {
+        const subInfo = await pool.query(
+            `SELECT course_id, status FROM view_submissoes_completo WHERE id = $1`,
+            [idNum]
+        );
+
+        if (subInfo.rows.length === 0) {
+            return res.status(404).json({ erro: "Submissão não encontrada." });
+        }
+
+        const { course_id, status } = subInfo.rows[0];
+        const isSuperAdmin = req.usuario.perfis && req.usuario.perfis.includes('super_admin');
+
+        let course_ids = [];
+        if (isSuperAdmin) {
+            const todosCursos = await pool.query(`SELECT id FROM courses WHERE is_active = true`);
+            course_ids = todosCursos.rows.map(r => r.id);
+        } else {
+            const acesso = await pool.query(
+                `SELECT course_id FROM course_coordinators WHERE user_id = $1 AND is_active = true`,
+                [req.usuario.id]
+            );
+            course_ids = acesso.rows.map(r => r.course_id);
+        }
+
+        if (course_ids.length === 0) {
+            return res.status(200).json({ prev_id: null, next_id: null });
+        }
+
+        const queryList = `
+            SELECT id 
+            FROM view_submissoes_completo
+            WHERE course_id = ANY($1::bigint[]) AND status = $2
+            ORDER BY submitted_at DESC, id DESC
+        `;
+        const listRes = await pool.query(queryList, [course_ids, status]);
+        const ids = listRes.rows.map(r => parseInt(r.id));
+
+        const currentIndex = ids.indexOf(idNum);
+        if (currentIndex === -1) {
+            return res.status(200).json({ prev_id: null, next_id: null });
+        }
+
+        const next_id = currentIndex + 1 < ids.length ? ids[currentIndex + 1] : null;
+        const prev_id = currentIndex - 1 >= 0 ? ids[currentIndex - 1] : null;
+
+        res.status(200).json({ prev_id, next_id });
+
+    } catch (err) {
+        console.error("Erro em getSubmissaoNavegacao:", err);
+        res.status(500).json({ erro: err.message });
+    }
+};
+
+exports.patchValidarLote = async (req, res) => {
+    const { ids, status_final, comment, approved_hours_map } = req.body;
+    const validator_user_id = req.usuario.id;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ erro: "Lista de IDs inválida ou vazia." });
+    }
+
+    const statusValidos = ['approved', 'rejected', 'returned_for_adjustment'];
+    if (!statusValidos.includes(status_final)) {
+        return res.status(400).json({ erro: `Status deve ser: ${statusValidos.join(', ')}.` });
+    }
+
+    const isSuperAdmin = req.usuario.perfis && req.usuario.perfis.includes('super_admin');
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        let course_ids = [];
+        if (!isSuperAdmin) {
+            const acesso = await client.query(
+                `SELECT course_id FROM course_coordinators WHERE user_id = $1 AND is_active = true`,
+                [validator_user_id]
+            );
+            course_ids = acesso.rows.map(r => parseInt(r.course_id));
+        }
+
+        const resultadosValidados = [];
+
+        for (const id of ids) {
+            const idNum = parseInt(id);
+            if (isNaN(idNum)) {
+                throw new Error(`ID de submissão inválido: ${id}`);
+            }
+
+            const subRes = await client.query(
+                `SELECT s.id, s.status, s.requested_hours, uc.course_id, u.id AS student_id, u.full_name, u.email, s.title
+                 FROM submissions s
+                 JOIN user_courses uc ON uc.id = s.user_course_id
+                 JOIN users u ON u.id = uc.user_id
+                 WHERE s.id = $1`,
+                [idNum]
+            );
+
+            if (subRes.rows.length === 0) {
+                throw new Error(`Submissão ${idNum} não encontrada.`);
+            }
+
+            const sub = subRes.rows[0];
+
+            if (!isSuperAdmin && !course_ids.includes(parseInt(sub.course_id))) {
+                throw new Error(`Acesso negado para a submissão ${idNum}.`);
+            }
+
+            let approved_hours = 0;
+            if (status_final === 'approved') {
+                approved_hours = (approved_hours_map && approved_hours_map[idNum] !== undefined)
+                    ? parseFloat(approved_hours_map[idNum])
+                    : parseFloat(sub.requested_hours);
+            }
+
+            if (isNaN(approved_hours) || approved_hours < 0) {
+                approved_hours = 0;
+            }
+
+            const updateRes = await client.query(
+                `UPDATE submissions
+                 SET status = $1::submission_status_enum,
+                     approved_hours = $2,
+                     updated_at = NOW()
+                 WHERE id = $3
+                 RETURNING *`,
+                [status_final, approved_hours, idNum]
+            );
+
+            await client.query(
+                `INSERT INTO validations (
+                    submission_id, validator_user_id, validation_status, previous_status, comment, approved_hours
+                 ) VALUES ($1, $2, $3::validation_status_enum, $4::submission_status_enum, $5, $6)`,
+                [idNum, validator_user_id, status_final, sub.status, comment || 'Validação em lote', approved_hours]
+            );
+
+            const notificationTypeMap = {
+                approved: 'submission_approved',
+                rejected: 'submission_rejected',
+                returned_for_adjustment: 'submission_returned'
+            };
+            const notificationTitle =
+                status_final === 'approved'
+                    ? 'Sua submissão foi aprovada'
+                    : status_final === 'rejected'
+                        ? 'Sua submissão foi reprovada'
+                        : 'Sua submissão foi devolvida para ajuste';
+
+            await client.query(
+                `INSERT INTO notifications (user_id, submission_id, type, title, message)
+                 VALUES ($1, $2, $3::notification_type_enum, $4, $5)`,
+                [sub.student_id, idNum, notificationTypeMap[status_final], notificationTitle, comment || 'Validação em lote']
+            );
+
+            emailResultadoSubmissao(sub.email, sub.full_name, status_final, sub.title, comment || 'Validação em lote')
+                .catch(err => console.error(`Erro ao enviar email em lote para ${sub.email}:`, err));
+
+            await registrarLog(validator_user_id, 'VALIDAR_SUBMISSAO', 'submissions', idNum, {
+                status_final,
+                approved_hours,
+                lote: true
+            });
+
+            resultadosValidados.push(updateRes.rows[0]);
+        }
+
+        await client.query('COMMIT');
+        res.status(200).json({ mensagem: `${resultadosValidados.length} submissões validadas em lote com sucesso!`, dados: resultadosValidados });
+
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error("Erro em patchValidarLote:", err);
+        res.status(500).json({ erro: err.message });
+    } finally {
+        client.release();
     }
 };
 
@@ -683,9 +873,20 @@ exports.patchValidarSubmissao = async (req, res) => {
                 console.error('Erro ao enviar email:', err);
             });
 
-            console.timeEnd('envio_email');
-
             console.time('insert_notification');
+
+            const notificationTypeMap = {
+                approved: 'submission_approved',
+                rejected: 'submission_rejected',
+                returned_for_adjustment: 'submission_returned'
+            };
+
+            const notificationTitle =
+                status_final === 'approved'
+                    ? 'Sua submissão foi aprovada'
+                    : status_final === 'rejected'
+                        ? 'Sua submissão foi reprovada'
+                        : 'Sua submissão foi devolvida para ajuste';
 
             await pool.query(
                 `INSERT INTO notifications (
@@ -705,14 +906,8 @@ exports.patchValidarSubmissao = async (req, res) => {
                 [
                     aluno.rows[0].id,
                     submissao.rows[0].id,
-                    `submission_${status_final}`,
-                    `Sua submissão foi ${
-                        status_final === 'approved'
-                            ? 'aprovada'
-                            : status_final === 'rejected'
-                                ? 'reprovada'
-                                : 'devolvida para ajuste'
-                    }`,
+                    notificationTypeMap[status_final],
+                    notificationTitle,
                     comment || ''
                 ]
             );
@@ -830,10 +1025,14 @@ exports.getResumoGeral = async (req, res) => {
 
                 COUNT(*) FILTER (
                     WHERE status = 'approved'
-                ) AS aprovadas
+                ) AS aprovadas,
 
-             FROM view_submissoes_completo
-             WHERE course_id = ANY($1)`,
+                COALESCE(SUM(CASE WHEN status = 'approved' THEN approved_hours ELSE 0 END), 0) AS horas_aprovadas,
+
+                COALESCE(SUM(CASE WHEN status NOT IN ('approved', 'rejected') THEN approved_hours ELSE 0 END), 0) AS horas_pendentes
+
+            FROM view_submissoes_completo
+            WHERE course_id = ANY($1)`,
             [course_ids]
         );
 
@@ -841,18 +1040,24 @@ exports.getResumoGeral = async (req, res) => {
             alunos: alunos.rows,
             categorias: categorias.rows,
             contadores: {
-                total_alunos:
-                    contadores.rows[0].total_alunos,
+            total_alunos:
+                contadores.rows[0].total_alunos,
 
-                total_submissoes:
-                    contadores.rows[0].total_submissoes || 0,
+            total_submissoes:
+                contadores.rows[0].total_submissoes || 0,
 
-                pendentes:
-                    pendentesAprovadas.rows[0].pendentes || 0,
+            pendentes:
+                pendentesAprovadas.rows[0].pendentes || 0,
 
-                aprovadas:
-                    pendentesAprovadas.rows[0].aprovadas || 0
-            }
+            aprovadas:
+                pendentesAprovadas.rows[0].aprovadas || 0,
+
+            horas_aprovadas:
+                parseFloat(pendentesAprovadas.rows[0].horas_aprovadas) || 0,
+
+            horas_pendentes:
+                parseFloat(pendentesAprovadas.rows[0].horas_pendentes) || 0
+            },
         });
 
     } catch (err) {

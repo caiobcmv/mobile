@@ -4,13 +4,12 @@
  * Gerencia Autenticação, Guards de Rota e Transformação de Dados.
  */
  
-// Define a API com base no local de onde o site está sendo acessado
-var API = window.location.origin;
+// Força a conexão com o backend no IP 127.0.0.1 (mais estável que 'localhost')
+var API = 'http://127.0.0.1:3001';
 
-// Se o site estiver rodando em uma porta diferente do backend (ex: Live Server)
-// ou aberto como arquivo local (file://), aponta para a porta do backend local (3001)
-if (window.location.protocol === 'file:' || (!window.location.origin.includes(':3001') && (window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')))) {
-    API = 'http://127.0.0.1:3001';
+// Se já estivermos rodando dentro do próprio servidor, usamos caminho relativo
+if (window.location.origin.includes(':3001')) {
+    API = 'http://localhost:3001';
 }
 window.API = API; // Garante visibilidade global
  

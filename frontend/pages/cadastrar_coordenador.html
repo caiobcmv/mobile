@@ -538,7 +538,7 @@
                 };
 
                 const token = localStorage.getItem('token');
-                const resp = await fetch(API + '/admin/coordenador', {
+                const resp = await fetch('/admin/coordenador', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

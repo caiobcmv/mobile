@@ -61,7 +61,8 @@
                     phone: document.getElementById('telefoneAluno').value,
                     course_id: document.getElementById('cursoAluno').value,
                     ra: document.getElementById('raAluno').value,
-                    status_matricula: 'ATIVO' // Ou ativo
+                    status_matricula: 'ATIVO', // Ou ativo
+                    semestre: parseInt(document.getElementById('semestreAluno').value) || 1
                 };
 
                 // Validação básica front-end

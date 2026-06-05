@@ -9,8 +9,8 @@
         content="Análise e validação de certificados de atividades complementares - Senac Gestão Acadêmica">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="/styles/analise_certificado.css">
-    <script src="/services/apiHelper.js"></script>
     <script src="/services/script.js"></script>
+    <script src="/services/apiHelper.js"></script>
     <link rel="stylesheet" href="/styles/sidebar.css">
     <link href='https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap' rel='stylesheet'>
 </head>
@@ -93,7 +93,17 @@
                     <h1>Análise de Certificado</h1>
                     <p class="subtitle-protocol" id="subtitle-protocol">Carregando protocolo...</p>
                 </div>
-                <span id="badge-status" class="badge-status badge-pendente">PENDENTE</span>
+                <div style="display: flex; align-items: center; gap: 15px; margin-left: auto; align-self: center;">
+                    <div class="controles-navegacao" style="display: flex; gap: 8px;">
+                        <button id="btn-navegacao-anterior" class="btn-navegacao" title="Certificado Anterior" disabled>
+                            <i class='bx bx-chevron-left'></i> Anterior
+                        </button>
+                        <button id="btn-navegacao-proximo" class="btn-navegacao" title="Próximo Certificado" disabled>
+                            Próximo <i class='bx bx-chevron-right'></i>
+                        </button>
+                    </div>
+                    <span id="badge-status" class="badge-status badge-pendente">PENDENTE</span>
+                </div>
             </section>
 
             <div id="loading-state" class="loading-state">
@@ -365,9 +375,43 @@
                     renderRegrasVazias();
                 }
 
+                // Carregar Navegação
+                carregarNavegacao(submissaoId);
+
             } catch (err) {
                 document.getElementById('loading-state').innerHTML =
                     '<i class="bx bx-error" style="font-size:40px;color:#ef4444"></i><span>Falha na conexão com o servidor.</span>';
+            }
+        }
+
+        async function carregarNavegacao(id) {
+            try {
+                const nav = await apiGet(`/coordenador/submissao/${id}/navegacao`);
+                
+                const btnPrev = document.getElementById('btn-navegacao-anterior');
+                const btnNext = document.getElementById('btn-navegacao-proximo');
+
+                if (btnPrev) {
+                    if (nav && nav.prev_id) {
+                        btnPrev.disabled = false;
+                        btnPrev.onclick = () => window.location.href = `analise_certificado.html?id=${nav.prev_id}`;
+                    } else {
+                        btnPrev.disabled = true;
+                        btnPrev.onclick = null;
+                    }
+                }
+
+                if (btnNext) {
+                    if (nav && nav.next_id) {
+                        btnNext.disabled = false;
+                        btnNext.onclick = () => window.location.href = `analise_certificado.html?id=${nav.next_id}`;
+                    } else {
+                        btnNext.disabled = true;
+                        btnNext.onclick = null;
+                    }
+                }
+            } catch (e) {
+                console.error("Erro ao carregar navegacao:", e);
             }
         }
 

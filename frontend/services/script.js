@@ -4,14 +4,9 @@
  */
 
 if (typeof API === 'undefined') {
-    // Define a API com base no local de onde o site está sendo acessado
-    var API = window.location.origin;
-
-    // Se o site estiver rodando em uma porta diferente do backend (ex: Live Server)
-    // ou aberto como arquivo local (file://), aponta para a porta do backend local (3001)
-    if (window.location.protocol === 'file:' || (!window.location.origin.includes(':3001') && (window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')))) {
-        API = 'http://127.0.0.1:3001';
-    }
+    var API = window.location.origin.includes(':3001')
+        ? ''
+        : 'http://localhost:3001';
 }
 
 /* ========== LOGIN ========== */
@@ -30,7 +25,7 @@ function acessarPortal() {
         return;
     }
 
-    fetch(API + '/auth/login', {
+    fetch('/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, senha })
@@ -315,7 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Nome ausente (sessão antiga) — tenta buscar via API
         const token = localStorage.getItem('token');
         if (token) {
-            fetch(API + '/auth/me', {
+            fetch('/auth/me', {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
             .then(r => r.ok ? r.json() : null)
@@ -332,3 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
+function abrirAnalise(id) {
+    window.location.href = `analise_certificado.html?id=${id}`;
+}

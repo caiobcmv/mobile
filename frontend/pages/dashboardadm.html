@@ -137,6 +137,10 @@
                         <div class="card-content">
                             <div class="card-header">
                                 <h2>Envios por Categoria</h2>
+                                <div class="toggle-periodo">
+                                    <button class="active" id="btn-mensal" onclick="setPeriodo('mensal')">MENSAL</button>
+                                    <button id="btn-anual" onclick="setPeriodo('anual')">ANUAL</button>
+                                </div>
                             </div>
                             <div class="barras-container" id="barras-container">
                                 <div class="skeleton-line" style="height:32px; margin-bottom:12px; border-radius:6px; background:#e2e8f0; animation: pulse 1.5s infinite;"></div>
@@ -191,9 +195,18 @@
     </style>
 
     <script>
+        let periodoAtual = 'mensal';
+
+        function setPeriodo(periodo) {
+            periodoAtual = periodo;
+            document.getElementById('btn-mensal').classList.toggle('active', periodo === 'mensal');
+            document.getElementById('btn-anual').classList.toggle('active', periodo === 'anual');
+            carregarDashboard();
+        }
+
         async function carregarDashboard() {
             try {
-                const data = await apiGet('/dashboard/coordenador');
+                const data = await apiGet(`/dashboard/coordenador?periodo=${periodoAtual}`);
 
                 if (!data || data.erro) {
                     mostrarErro(data?.erro || 'Erro ao carregar dados');
@@ -255,6 +268,17 @@
                     }
                 }
 
+                // Usa insight real da IA se existir (tabela insights populada pelo pipeline Python)
+                if (data.insights && data.insights.length > 0) {
+                    const insightReal =
+                            data.insights.find(i =>
+                                i.perfil_destino === 'coordenador' &&
+                                i.tipo_insight === 'ia_generativa'
+                            ) ||
+                            data.insights[0];
+                    if (insightReal && insightReal.descricao) insightTexto = insightReal.descricao;
+                }
+
                 // Renderiza no HTML do Mural
                 document.getElementById('insight-taxa-aprovacao').textContent = `${taxaAprovacao}%`;
                 document.getElementById('insight-taxa-rejeicao').textContent = `${taxaRejeicao}%`;
@@ -306,14 +330,28 @@
             }
         }
 
-        function atualizarInsightsClick() {
+        async function atualizarInsightsClick() {
             const icon = document.getElementById('icon-sync-insights');
-            if (icon) {
-                icon.classList.add('spin-animation');
-                setTimeout(() => {
-                    icon.classList.remove('spin-animation');
-                }, 600);
+            const btn = document.getElementById('btn-recarregar-insights');
+
+            if (icon) icon.classList.add('spin-animation');
+            if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; }
+
+            try {
+                // Busca o course_id do coordenador
+                const cursos = await apiGet('/coordenador/meus-cursos');
+                const courseId = (cursos && cursos.length > 0) ? cursos[0].id : null;
+
+                if (courseId) {
+                    await apiPost(`/dashboard/insights/atualizar/${courseId}`);
+                }
+            } catch (e) {
+                console.warn('Aviso ao rodar pipeline:', e);
+            } finally {
+                if (icon) icon.classList.remove('spin-animation');
+                if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
             }
+
             carregarDashboard();
         }
 

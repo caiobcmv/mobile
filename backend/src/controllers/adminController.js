@@ -286,10 +286,12 @@ exports.deleteCoordenador = async (req, res) => {
 
 exports.getSubmissoesGeral = async (req, res) => {
     const user_id = parseInt(req.usuario.id);
-    const { status, pagina = 1 } = req.query;
+    const { status, pagina } = req.query;
 
+    const paginar = (pagina !== undefined && pagina !== null && pagina !== '');
+    const numPagina = paginar ? parseInt(pagina) : 1;
     const itensPorPagina = 10;
-    const offset = (pagina - 1) * itensPorPagina;
+    const offset = (numPagina - 1) * itensPorPagina;
 
     try {
         const isSuperAdmin =
@@ -328,7 +330,7 @@ exports.getSubmissoesGeral = async (req, res) => {
                     total: 0,
                     total_cursos: 0
                 },
-                pagina: parseInt(pagina),
+                pagina: paginar ? numPagina : null,
                 total_paginas: 0
             });
         }
@@ -340,28 +342,25 @@ exports.getSubmissoesGeral = async (req, res) => {
             filtroStatus = `
                 AND status NOT IN ('approved', 'rejected')
             `;
-
-            params.push(itensPorPagina, offset);
         } else if (status && status !== 'TODAS') {
             filtroStatus = `
                 AND status = $2::submission_status_enum
             `;
-
-            params.push(status, itensPorPagina, offset);
-        } else {
-            params.push(itensPorPagina, offset);
+            params.push(status);
         }
 
-        const resultado = await pool.query(
-            `SELECT *
+        let queryStr = `SELECT *
              FROM view_submissoes_completo
              WHERE course_id = ANY($1)
              ${filtroStatus}
-             ORDER BY submitted_at DESC
-             LIMIT $${params.length - 1}
-             OFFSET $${params.length}`,
-            params
-        );
+             ORDER BY submitted_at DESC`;
+
+        if (paginar) {
+            params.push(itensPorPagina, offset);
+            queryStr += ` LIMIT $${params.length - 1} OFFSET $${params.length}`;
+        }
+
+        const resultado = await pool.query(queryStr, params);
 
         const contadores = await pool.query(
             `SELECT
@@ -389,10 +388,10 @@ exports.getSubmissoesGeral = async (req, res) => {
         res.status(200).json({
             submissoes: resultado.rows,
             contadores: contadores.rows[0],
-            pagina: parseInt(pagina),
-            total_paginas: Math.ceil(
-                contadores.rows[0].total / itensPorPagina
-            )
+            pagina: paginar ? numPagina : null,
+            total_paginas: paginar
+                ? Math.ceil(contadores.rows[0].total / itensPorPagina)
+                : null
         });
 
     } catch (err) {
@@ -413,9 +412,11 @@ exports.getListaAlunos = async (req, res) => {
                 u.email,
                 u.phone,
                 sp.ra,
+                sp.semestre,
                 uc.status_matricula,
                 c.id AS course_id,
                 c.name AS course_name,
+                cr.nivel_risco,
                 COALESCE(array_agg(c.name) FILTER (WHERE c.name IS NOT NULL), '{}') AS course_names
              FROM users u
              JOIN user_roles ur ON ur.user_id = u.id
@@ -423,7 +424,8 @@ exports.getListaAlunos = async (req, res) => {
              LEFT JOIN student_profiles sp ON sp.user_id = u.id
              LEFT JOIN user_courses uc ON uc.user_id = u.id AND uc.is_active = true
              LEFT JOIN courses c ON c.id = uc.course_id AND c.is_active = true
-             GROUP BY u.id, u.full_name, u.email, u.phone, sp.ra, uc.status_matricula, c.id, c.name
+             LEFT JOIN vw_risco_atual cr ON cr.aluno_id = u.id AND cr.course_id = uc.course_id
+             GROUP BY u.id, u.full_name, u.email, u.phone, sp.ra, sp.semestre, uc.status_matricula, c.id, c.name, cr.nivel_risco
              ORDER BY u.full_name`
         );
         res.status(200).json(resultado.rows);
@@ -460,5 +462,110 @@ exports.getLogs = async (req, res) => {
     } catch (err) {
         console.error('Erro em getLogs:', err);
         res.status(500).json({ erro: "Erro ao buscar logs: " + err.message });
+    }
+};
+
+exports.exportarRelatorioCSV = async (req, res) => {
+    try {
+        const queryStr = `
+            SELECT 
+                v.ra AS "RA",
+                v.full_name AS "Nome",
+                v.email AS "Email",
+                v.course_name AS "Curso",
+                v.total_obrigatorio AS "Horas Obrigatórias",
+                v.total_integralizado AS "Horas Concluídas",
+                (v.total_obrigatorio - v.total_integralizado) AS "Horas Faltantes",
+                v.total_submissoes AS "Total Submissões",
+                COALESCE(r.nivel_risco, 'baixo') AS "Nível de Risco"
+            FROM view_resumo_aluno_por_curso v
+            LEFT JOIN vw_risco_atual r ON r.aluno_id = v.user_id AND r.course_id = v.course_id
+            ORDER BY v.course_name, v.full_name;
+        `;
+
+        const resultado = await pool.query(queryStr);
+
+        // Gera cabeçalho do CSV
+        const headers = ["RA", "Nome", "Email", "Curso", "Horas Obrigatórias", "Horas Concluídas", "Horas Faltantes", "Total Submissões", "Nível de Risco"];
+        let csvContent = "\uFEFF"; // BOM para o Excel abrir com UTF-8 corretamente
+        csvContent += headers.join(",") + "\n";
+
+        // Gera as linhas
+        resultado.rows.forEach(row => {
+            const line = headers.map(header => {
+                let cell = row[header] !== null && row[header] !== undefined ? row[header] : "";
+                // Escapa aspas e vírgulas
+                cell = cell.toString().replace(/"/g, '""');
+                if (cell.includes(",") || cell.includes("\n") || cell.includes('"')) {
+                    cell = `"${cell}"`;
+                }
+                return cell;
+            });
+            csvContent += line.join(",") + "\n";
+        });
+
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', 'attachment; filename=relatorio-consolidado.csv');
+        res.status(200).send(csvContent);
+
+    } catch (err) {
+        console.error('Erro ao exportar relatório:', err);
+        res.status(500).json({ erro: "Erro ao gerar arquivo de exportação: " + err.message });
+    }
+};
+
+exports.exportarResumoCursosCSV = async (req, res) => {
+    try {
+        const queryStr = `
+            SELECT 
+                c.code AS "Sigla",
+                c.name AS "Nome do Curso",
+                c.minimum_required_hours AS "Horas Requeridas",
+                COALESCE(r.total_alunos, 0) AS "Total de Alunos",
+                COALESCE(r.total_submissoes, 0) AS "Total de Submissões",
+                COALESCE(r.total_aprovadas, 0) AS "Aprovadas",
+                COALESCE(r.total_reprovadas, 0) AS "Reprovadas",
+                COALESCE(r.total_pendentes, 0) AS "Pendentes",
+                COALESCE(r.total_horas_aprovadas, 0) AS "Total Horas Aprovadas",
+                COALESCE(r.media_horas_por_aluno, 0) AS "Média de Horas/Aluno",
+                COALESCE(r.eficiencia_percentual, 0) AS "Eficiência %"
+            FROM courses c
+            LEFT JOIN view_relatorio_geral r ON r.course_id = c.id
+            WHERE c.is_active = true
+            ORDER BY c.name;
+        `;
+
+        const resultado = await pool.query(queryStr);
+
+        // Gera cabeçalho do CSV
+        const headers = [
+            "Sigla", "Nome do Curso", "Horas Requeridas", "Total de Alunos", 
+            "Total de Submissões", "Aprovadas", "Reprovadas", "Pendentes", 
+            "Total Horas Aprovadas", "Média de Horas/Aluno", "Eficiência %"
+        ];
+        let csvContent = "\uFEFF"; // BOM
+        csvContent += headers.join(",") + "\n";
+
+        // Gera as linhas
+        resultado.rows.forEach(row => {
+            const line = headers.map(header => {
+                let cell = row[header] !== null && row[header] !== undefined ? row[header] : "";
+                // Escapa aspas e vírgulas
+                cell = cell.toString().replace(/"/g, '""');
+                if (cell.includes(",") || cell.includes("\n") || cell.includes('"')) {
+                    cell = `"${cell}"`;
+                }
+                return cell;
+            });
+            csvContent += line.join(",") + "\n";
+        });
+
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', 'attachment; filename=resumo-cursos.csv');
+        res.status(200).send(csvContent);
+
+    } catch (err) {
+        console.error('Erro ao exportar resumo de cursos:', err);
+        res.status(500).json({ erro: "Erro ao gerar arquivo de exportação: " + err.message });
     }
 };

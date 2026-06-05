@@ -13,6 +13,16 @@
     <link rel="stylesheet" href="/styles/cursosuperadm.css">
     <script src="/services/apiHelper.js"></script>
     <script src="/services/script.js"></script>
+    <style>
+        @keyframes spin-refresh {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .spin-animation-infinite {
+            animation: spin-refresh 1s linear infinite;
+            display: inline-block;
+        }
+    </style>
 </head>
 
 <body>
@@ -271,7 +281,7 @@
                     <div class="module-relatorios">
                         <h3>Relatórios Rápidos</h3>
                         <p>Acesse métricas avançadas de desempenho por curso e taxa de evasão semestral.</p>
-                        <button class="btn-white">GERAR AGORA</button>
+                        <button class="btn-white" onclick="gerarRelatorioRapido(event)">GERAR AGORA</button>
                     </div>
 
                     <!-- Suporte Administrativo -->
@@ -589,6 +599,54 @@
                 link.download = `lista_cursos_${new Date().toISOString().slice(0, 10)}.csv`;
                 link.click();
                 URL.revokeObjectURL(url);
+            }
+        }
+
+        async function gerarRelatorioRapido(event) {
+            if (event) event.preventDefault();
+            const btn = event.currentTarget || document.querySelector('.module-relatorios button');
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = `<i class='bx bx-loader-alt spin-animation-infinite'></i> GERANDO...`;
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.7';
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${window.API}/admin/exportar-cursos-resumo`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.status === 401) {
+                    if (typeof logout === 'function') logout();
+                    else window.location.href = 'index.html';
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error('Falha ao baixar o relatório.');
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'resumo-cursos.csv';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } catch (err) {
+                console.error(err);
+                alert('Erro ao exportar o relatório rápido: ' + err.message);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.style.pointerEvents = 'auto';
+                btn.style.opacity = '1';
             }
         }
     </script>
