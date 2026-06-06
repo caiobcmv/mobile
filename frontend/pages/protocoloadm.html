@@ -300,8 +300,17 @@
                         opt.textContent = c.name;
                         selectCurso.appendChild(opt);
                     });
+
+                    const activeCourseId = localStorage.getItem('selectedCourseId');
+                    if (activeCourseId) {
+                        selectCurso.value = activeCourseId;
+                    }
                 }
-            }).catch(err => console.error('Erro ao carregar cursos:', err));
+                carregarDados();
+            }).catch(err => {
+                console.error('Erro ao carregar cursos:', err);
+                carregarDados();
+            });
 
             // ── Carregar Dados ──
             async function carregarDados() {
@@ -610,7 +619,7 @@
             window.mudarPagina = mudarPagina;
 
             // --- INICIALIZAÇÃO ---
-            carregarDados();
+            // Chamado dinamicamente após carregamento dos cursos
         });
     </script>
 

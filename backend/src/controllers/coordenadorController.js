@@ -340,9 +340,26 @@ exports.getMeusCursos = async (req, res) => {
         let params = [];
 
         if (isSuperAdmin) {
-            query = `SELECT id, name, code FROM courses WHERE is_active = true ORDER BY name`;
+            query = `SELECT c.id, c.name, c.code, c.modalidade,
+                            COALESCE(
+                                (SELECT COUNT(*)::int 
+                                 FROM submissions s
+                                 JOIN user_courses uc ON uc.id = s.user_course_id
+                                 WHERE uc.course_id = c.id AND s.status NOT IN ('approved', 'rejected')), 
+                                0
+                            ) AS pending_count
+                     FROM courses c 
+                     WHERE c.is_active = true 
+                     ORDER BY c.name`;
         } else {
-            query = `SELECT c.id, c.name, c.code 
+            query = `SELECT c.id, c.name, c.code, c.modalidade,
+                            COALESCE(
+                                (SELECT COUNT(*)::int 
+                                 FROM submissions s
+                                 JOIN user_courses uc ON uc.id = s.user_course_id
+                                 WHERE uc.course_id = c.id AND s.status NOT IN ('approved', 'rejected')), 
+                                0
+                            ) AS pending_count
                      FROM courses c
                      JOIN course_coordinators cc ON cc.course_id = c.id
                      WHERE cc.user_id = $1 AND cc.is_active = true AND c.is_active = true

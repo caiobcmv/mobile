@@ -10,12 +10,17 @@ exports.getDashboardCoordenador = async (req, res) => {
 
     try {
         let course_ids = [];
+        const queryCourseId = req.query.course_id ? parseInt(req.query.course_id) : null;
 
         if (isSuperAdmin) {
-            const todosCursos = await pool.query(
-                `SELECT id FROM courses WHERE is_active = true`
-            );
-            course_ids = todosCursos.rows.map(r => r.id);
+            if (queryCourseId) {
+                course_ids = [queryCourseId];
+            } else {
+                const todosCursos = await pool.query(
+                    `SELECT id FROM courses WHERE is_active = true`
+                );
+                course_ids = todosCursos.rows.map(r => r.id);
+            }
         } else {
             const cursosDoCoordenador = await pool.query(
                 `SELECT course_id
@@ -23,7 +28,17 @@ exports.getDashboardCoordenador = async (req, res) => {
                  WHERE user_id = $1 AND is_active = true`,
                 [user_id]
             );
-            course_ids = cursosDoCoordenador.rows.map(r => r.course_id);
+            const all_coord_course_ids = cursosDoCoordenador.rows.map(r => parseInt(r.course_id));
+
+            if (queryCourseId) {
+                if (all_coord_course_ids.includes(queryCourseId)) {
+                    course_ids = [queryCourseId];
+                } else {
+                    return res.status(403).json({ erro: "Você não tem acesso a este curso." });
+                }
+            } else {
+                course_ids = all_coord_course_ids;
+            }
         }
 
         if (course_ids.length === 0) {

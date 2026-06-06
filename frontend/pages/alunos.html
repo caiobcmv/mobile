@@ -91,6 +91,12 @@
                             opt.textContent = c.name;
                             selectCurso.appendChild(opt);
                         });
+
+                        const activeCourseId = localStorage.getItem('selectedCourseId');
+                        if (activeCourseId) {
+                            selectCurso.value = activeCourseId;
+                            cursoBuscaAtual = activeCourseId;
+                        }
                     }
 
                     const promessas = cursos.map(c =>

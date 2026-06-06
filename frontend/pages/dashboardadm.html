@@ -15,6 +15,13 @@
 <body>
     <script>
         protegerPagina(['COORDENADOR', 'COORDINATOR']);
+        
+        // Redireciona se o coordenador não selecionou um curso
+        const perfilUser = localStorage.getItem('perfil') ? localStorage.getItem('perfil').toUpperCase() : '';
+        const isCoordenadorUser = perfilUser === 'COORDINATOR' || perfilUser === 'COORDENADOR';
+        if (isCoordenadorUser && !localStorage.getItem('selectedCourseId')) {
+            window.location.href = '/pages/selecionar_curso.html';
+        }
     </script>
 
     <div class="layout-geral">
@@ -206,11 +213,23 @@
 
         async function carregarDashboard() {
             try {
-                const data = await apiGet(`/dashboard/coordenador?periodo=${periodoAtual}`);
+                const selectedCourseId = localStorage.getItem('selectedCourseId');
+                let url = `/dashboard/coordenador?periodo=${periodoAtual}`;
+                if (selectedCourseId) {
+                    url += `&course_id=${selectedCourseId}`;
+                }
+                const data = await apiGet(url);
 
                 if (!data || data.erro) {
                     mostrarErro(data?.erro || 'Erro ao carregar dados');
                     return;
+                }
+
+                if (data.curso) {
+                    const breadcrumbEl = document.querySelector('.breadcrumb');
+                    if (breadcrumbEl) {
+                        breadcrumbEl.innerHTML = `VISÃO GERAL ACADÊMICA &bull; <span style="color: var(--azul-senac); font-weight: 700;">${data.curso.toUpperCase()}</span>`;
+                    }
                 }
 
                 const updatedAt = data.updated_at;
@@ -338,9 +357,11 @@
             if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; }
 
             try {
-                // Busca o course_id do coordenador
-                const cursos = await apiGet('/coordenador/meus-cursos');
-                const courseId = (cursos && cursos.length > 0) ? cursos[0].id : null;
+                let courseId = localStorage.getItem('selectedCourseId');
+                if (!courseId) {
+                    const cursos = await apiGet('/coordenador/meus-cursos');
+                    courseId = (cursos && cursos.length > 0) ? cursos[0].id : null;
+                }
 
                 if (courseId) {
                     await apiPost(`/dashboard/insights/atualizar/${courseId}`);

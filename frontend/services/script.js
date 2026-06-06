@@ -63,8 +63,8 @@ function acessarPortal() {
 
             if (perfilUpper === 'STUDENT' || perfilUpper === 'STUDENT') {
                 window.location.href = '/pages/Dasboard.html';
-            } else if (perfilUpper === 'COORDINATOR' || perfilUpper === 'COORDINATOR') {
-                window.location.href = '/pages/dashboardadm.html';
+            } else if (perfilUpper === 'COORDINATOR') {
+                window.location.href = '/pages/selecionar_curso.html';
             } else if (perfilUpper === 'ADMIN' || perfilUpper === 'SUPER_ADMIN') {
                 window.location.href = '/pages/cursosuperadm.html';
             } else {
@@ -227,6 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ];
         } else if (isCoordenador) {
             links = [
+                { href: 'selecionar_curso.html', icon: 'bx-transfer-alt', text: 'Selecionar Curso' },
                 { href: 'dashboardadm.html', icon: 'bx-grid-alt', text: 'Dashboard' },
                 { href: 'alunos.html', icon: 'bx-group', text: 'Alunos' },
                 { href: 'protocoloadm.html', icon: 'bx-upload', text: 'Submissões' },
