@@ -25,5 +25,6 @@ router.get('/submissao/:id', authMiddleware(['coordinator']), coordenadorControl
 router.get('/submissao/:id/navegacao', authMiddleware(['coordinator', 'super_admin']), coordenadorController.getSubmissaoNavegacao);
 router.patch('/validar-lote', authMiddleware(['coordinator', 'super_admin']), coordenadorController.patchValidarLote);
 router.patch('/validar/:id', authMiddleware(['coordinator']), coordenadorController.patchValidarSubmissao);
+router.post('/validar-massa', authMiddleware(['coordinator']), coordenadorController.postValidarSubmissaoMassa);
 router.get('/resumo-geral', authMiddleware(['coordinator', 'super_admin']), coordenadorController.getResumoGeral);
 module.exports = router;

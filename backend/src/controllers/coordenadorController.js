@@ -1086,3 +1086,100 @@ exports.getResumoGeral = async (req, res) => {
         });
     }
 };
+
+exports.postValidarSubmissaoMassa = async (req, res) => {
+    const { ids, status_final, comment } = req.body;
+    const validator_user_id = req.usuario.id;
+
+    const statusValidos = ['approved', 'rejected'];
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ erro: 'Nenhuma submissão informada para validação.' });
+    }
+
+    if (!statusValidos.includes(status_final)) {
+        return res.status(400).json({
+            erro: `Status inválido para validação em massa. Deve ser: ${statusValidos.join(', ')}.`
+        });
+    }
+
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        for (const subId of ids) {
+            const subRes = await client.query(
+                `SELECT status, requested_hours, title, user_course_id 
+                 FROM submissions 
+                 WHERE id = $1`,
+                [subId]
+            );
+
+            if (subRes.rows.length === 0) {
+                continue;
+            }
+
+            const currentSub = subRes.rows[0];
+            const previousStatus = currentSub.status;
+            const approved_hours = status_final === 'approved' ? currentSub.requested_hours : 0;
+
+            await client.query(
+                `UPDATE submissions
+                 SET status = $1::submission_status_enum,
+                     approved_hours = $2,
+                     updated_at = NOW()
+                 WHERE id = $3`,
+                [status_final, approved_hours, subId]
+            );
+
+            await client.query(
+                `INSERT INTO validations (
+                    submission_id,
+                    validator_user_id,
+                    validation_status,
+                    previous_status,
+                    comment,
+                    approved_hours
+                )
+                VALUES ($1, $2, $3::validation_status_enum, $4::submission_status_enum, $5, $6)`,
+                [
+                    subId,
+                    validator_user_id,
+                    status_final,
+                    previousStatus,
+                    comment || 'Validação em massa efetuada pela coordenação',
+                    approved_hours
+                ]
+            );
+
+            const studentRes = await client.query(
+                `SELECT u.full_name, u.email 
+                 FROM user_courses uc 
+                 JOIN users u ON u.id = uc.user_id 
+                 WHERE uc.id = $1`,
+                [currentSub.user_course_id]
+            );
+
+            if (studentRes.rows.length > 0) {
+                emailResultadoSubmissao(
+                    studentRes.rows[0].email,
+                    studentRes.rows[0].full_name,
+                    status_final,
+                    currentSub.title,
+                    comment || 'Validação em massa efetuada pela coordenação'
+                ).catch(err => console.error('[Mass Validation Email Error]:', err));
+            }
+        }
+
+        await client.query('COMMIT');
+        res.status(200).json({ sucesso: true, mensagem: `${ids.length} submissões validadas com sucesso.` });
+
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('Erro na validação em massa:', err);
+        res.status(500).json({ erro: err.message });
+    } finally {
+        client.release();
+    }
+};
