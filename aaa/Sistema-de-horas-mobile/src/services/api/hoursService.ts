@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import api from './client';
 import { HourSubmission } from '../../types';
 
@@ -81,7 +82,7 @@ export const hoursService = {
     const formData = new FormData();
     
     // Check if we are running in a web environment (browser)
-    if (typeof window !== 'undefined') {
+    if (Platform.OS === 'web') {
       let fileBlob = webFile;
       if (!fileBlob) {
         try {
