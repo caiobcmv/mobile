@@ -330,6 +330,7 @@ exports.getResumoHoras = async (req, res) => {
         const limites = regras.rows.map(regra => {
             const horasAprovadas = aprovadasMap[regra.category_id] || 0;
             return {
+                category_id: parseInt(regra.category_id),
                 categoria: regra.category_name,
                 min_horas: regra.min_hours,
                 max_horas: regra.max_hours,
@@ -341,6 +342,7 @@ exports.getResumoHoras = async (req, res) => {
         const totalIntegralizado = Object.values(aprovadasMap).reduce((a, b) => a + b, 0);
 
         res.status(200).json({
+            course_id: parseInt(course_id),
             curso: course_name,
             total_obrigatorio: minimum_required_hours,
             total_integralizado: totalIntegralizado,
