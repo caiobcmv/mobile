@@ -61,6 +61,32 @@ function getFileType(originalname) {
     return 'other';
 }
 
+const executarOCREAtualizar = async (fileId, caminhoFisico, mimetype) => {
+    try {
+        const resultadoOCR = await executarOCR(
+            caminhoFisico,
+            mimetype
+        );
+
+        await pool.query(
+            `
+            UPDATE submission_files
+            SET ocr_extracted_text = $1,
+                ocr_confidence = $2
+            WHERE id = $3
+            `,
+            [
+                resultadoOCR.texto || resultadoOCR.textoBruto || '',
+                resultadoOCR.confianca || 0,
+                fileId
+            ]
+        );
+        console.log(`[OCR Background] Arquivo ${fileId} processado com sucesso.`);
+    } catch (err) {
+        console.error(`[OCR Background Error] Erro ao processar arquivo ${fileId} em segundo plano:`, err.message);
+    }
+};
+
 /**
  * Utilizada dentro da criação da submissão
  * usando a mesma transação (client).
@@ -70,17 +96,6 @@ const processarEInserirArquivo = async (
     submissionId,
     file
 ) => {
-    const caminhoFisico = path.join(
-        __dirname,
-        '../../uploads',
-        file.filename
-    );
-
-    const resultadoOCR = await executarOCR(
-        caminhoFisico,
-        file.mimetype
-    );
-
     const resultado = await client.query(
         `
         INSERT INTO submission_files
@@ -114,22 +129,33 @@ const processarEInserirArquivo = async (
             getFileType(file.originalname),
             file.mimetype,
             Math.round(file.size / 1024),
-            resultadoOCR.texto ||
-                resultadoOCR.textoBruto ||
-                '',
-            resultadoOCR.confianca || 0
+            'Processando OCR...',
+            0
         ]
     );
 
+    const arquivoInserido = resultado.rows[0];
+
+    const caminhoFisico = path.join(
+        __dirname,
+        '../../uploads',
+        file.filename
+    );
+
+    // Executa em segundo plano sem bloquear a requisição HTTP principal
+    setImmediate(() => {
+        executarOCREAtualizar(arquivoInserido.id, caminhoFisico, file.mimetype)
+            .catch(err => console.error("Erro na execução em segundo plano do OCR:", err));
+    });
+
     return {
-        ...resultado.rows[0],
-        dados_ia_extraidos:
-            resultadoOCR.dados || {
-                titulo: 'Não identificado',
-                instituicao: 'Não identificada',
-                duracao: 'Não identificada',
-                ano: 'Não identificado'
-            }
+        ...arquivoInserido,
+        dados_ia_extraidos: {
+            titulo: 'Processando...',
+            instituicao: 'Processando...',
+            duracao: 'Processando...',
+            ano: 'Processando...'
+        }
     };
 };
 

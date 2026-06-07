@@ -1,6 +1,6 @@
 // ─── API ─────────────────────────────────────────────────────────────────────
 export const API_BASE_URL = 'https://sistema-horas-api.onrender.com';
-export const API_TIMEOUT = 10_000; // ms
+export const API_TIMEOUT = 0; // ms (0 = no timeout)
 
 // ─── AsyncStorage Keys ────────────────────────────────────────────────────────
 export const STORAGE_KEYS = {
