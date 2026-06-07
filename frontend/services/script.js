@@ -4,9 +4,10 @@
  */
 
 if (typeof API === 'undefined') {
-    var API = window.location.origin.includes(':3001')
-        ? ''
-        : 'http://localhost:3001';
+    var API = window.location.origin;
+    if (window.location.protocol === 'file:' || (!window.location.origin.includes(':3001') && (window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')))) {
+        API = 'http://127.0.0.1:3001';
+    }
 }
 
 /* ========== LOGIN ========== */
