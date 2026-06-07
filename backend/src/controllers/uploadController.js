@@ -137,7 +137,7 @@ const processarEInserirArquivo = async (
  * POST /aluno/submissao/:submission_id/arquivo
  */
 exports.uploadCertificado = [
-    upload.array('certificados', 10),
+    upload.any(),
 
     async (req, res) => {
         const { submission_id } = req.params;

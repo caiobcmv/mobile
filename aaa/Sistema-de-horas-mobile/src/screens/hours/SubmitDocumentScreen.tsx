@@ -290,6 +290,12 @@ export default function SubmitDocumentScreen({ navigation, route }: Props) {
               <Text style={styles.modalTitle}>Revisar Atividade</Text>
               <Text style={styles.modalSubtitle}>Confira os detalhes antes de enviar para análise.</Text>
 
+              {error && (
+                <View style={{ backgroundColor: '#FEF2F2', padding: 12, borderRadius: 8, marginBottom: 16, borderLeftWidth: 4, borderLeftColor: '#EF4444' }}>
+                  <Text style={{ color: '#991B1B', fontSize: 13, fontWeight: '600' }}>{error}</Text>
+                </View>
+              )}
+
               {/* Linha de Cards: Categoria e Carga Horária */}
               <View style={styles.modalRowCards}>
                 <View style={styles.modalMiniCard}>

@@ -24,11 +24,14 @@ exports.postSubmeterAtividade = async (req, res) => {
     const user_id = req.usuario.id;
     const arquivos = req.files || [];
 
+    // Removido obrigatoriedade para suportar fluxo mobile em duas etapas
+    /*
     if (arquivos.length === 0) {
         return res.status(400).json({
             erro: 'É obrigatório enviar ao menos um arquivo de certificado.'
         });
     }
+    */
     
     const client = await pool.connect();
 
@@ -87,19 +90,22 @@ exports.postSubmeterAtividade = async (req, res) => {
 
         const submissao = resultado.rows[0];
 
-       const arquivosInseridos = await Promise.all(
-        arquivos.map(file =>
-            processarEInserirArquivo(
-                client,
-                submissao.id,
-                file
-            )
-        )
-    );
+        let arquivosInseridos = [];
+        if (arquivos && arquivos.length > 0) {
+            arquivosInseridos = await Promise.all(
+                arquivos.map(file =>
+                    processarEInserirArquivo(
+                        client,
+                        submissao.id,
+                        file
+                    )
+                )
+            );
 
-        const erroCriticoIA = arquivosInseridos.some(arq => arq.erro || !arq.dados_ia_extraidos);
-        if (erroCriticoIA) {
-            throw new Error('Falha crítica no processamento inteligente dos certificados. Envio cancelado.');
+            const erroCriticoIA = arquivosInseridos.some(arq => arq.erro || !arq.dados_ia_extraidos);
+            if (erroCriticoIA) {
+                throw new Error('Falha crítica no processamento inteligente dos certificados. Envio cancelado.');
+            }
         }
 
         const coordenadores = await client.query(
