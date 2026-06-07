@@ -397,3 +397,28 @@ exports.getMeusDados = async (req, res) => {
         res.status(500).json({ erro: err.message });
     }
 };
+
+exports.getCursos = async (req, res) => {
+    const user_id = req.usuario.id;
+
+    try {
+        const resultado = await pool.query(
+            `SELECT 
+                c.id, 
+                c.name, 
+                c.code, 
+                c.modalidade, 
+                c.turno, 
+                c.semestres, 
+                uc.status_matricula
+             FROM user_courses uc
+             JOIN courses c ON c.id = uc.course_id
+             WHERE uc.user_id = $1 AND uc.is_active = true AND c.is_active = true`,
+            [user_id]
+        );
+
+        res.status(200).json(resultado.rows);
+    } catch (err) {
+        res.status(500).json({ erro: "Erro ao buscar cursos do aluno: " + err.message });
+    }
+};
