@@ -8,7 +8,7 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "reset-teste": "node src/scripts/criar_coord_teste.js",
-    "db:migrate": "node src/scripts/deploy-db.js"
+    "db:migrate": "node migrate_and_populate.js"
   },
   "keywords": [],
   "author": "",
