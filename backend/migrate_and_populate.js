@@ -1,11 +1,19 @@
 const { Pool } = require('pg');
-const pool = new Pool({
-  host: 'localhost',
-  port: 5432,
-  database: 'atividades_complementares_senac',
-  user: 'postgres',
-  password: '123456',
-});
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+
+const pool = process.env.DATABASE_URL
+  ? new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false }
+    })
+  : new Pool({
+      host: 'localhost',
+      port: 5432,
+      database: 'atividades_complementares_senac',
+      user: 'postgres',
+      password: '123456',
+    });
 
 async function main() {
   try {

@@ -205,14 +205,16 @@ exports.getDashboardCoordenador = async (req, res) => {
             console.warn('[Dashboard] Tabela classificacao_risco não encontrada.');
         }
 
-        // ── Nome do curso ──
+        // ── Nome e Horas do curso ──
         let cursoNome = null;
+        let cursoHorasObrigatorias = 200;
         try {
             const cursoInfo = await pool.query(
-                `SELECT name FROM courses WHERE id = $1 LIMIT 1`,
+                `SELECT name, minimum_required_hours FROM courses WHERE id = $1 LIMIT 1`,
                 [course_ids[0]]
             );
             cursoNome = cursoInfo.rows[0]?.name || null;
+            cursoHorasObrigatorias = parseInt(cursoInfo.rows[0]?.minimum_required_hours || 200);
         } catch (e) {}
 
         res.status(200).json({
@@ -220,7 +222,8 @@ exports.getDashboardCoordenador = async (req, res) => {
                 pendentes:   parseInt(metricasRow.pendentes  || 0),
                 aprovadas:   parseInt(metricasRow.aprovadas  || 0),
                 reprovadas:  parseInt(metricasRow.reprovadas || 0),
-                media_horas: parseFloat(metricasRow.media_horas_por_aluno || 0)
+                media_horas: parseFloat(metricasRow.media_horas_por_aluno || 0),
+                horas_requeridas: cursoHorasObrigatorias
             },
             total_alunos:       totalAlunos,
             total_cursos:       course_ids.length,
