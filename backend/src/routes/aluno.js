@@ -17,7 +17,8 @@ router.post(
 router.put('/submissao/:id', authMiddleware(['student']), alunoController.putEditarSubmissao);
 router.delete('/submissao/:id', authMiddleware(['student']), alunoController.deleteSubmissao);
 router.get('/submissoes', authMiddleware(['student', 'coordinator']), alunoController.getMinhasSubmissoes);
-router.get('/resumo-horas/:course_id?', authMiddleware(['student', 'coordinator']), alunoController.getResumoHoras);
+router.get('/resumo-horas', authMiddleware(['student', 'coordinator']), alunoController.getResumoHoras);
+router.get('/resumo-horas/:course_id', authMiddleware(['student', 'coordinator']), alunoController.getResumoHoras);
 router.get('/meus-dados', authMiddleware(['student', 'coordinator']), alunoController.getMeusDados);
 
 // permite anexar arquivos adicionais a uma submissão que já tem

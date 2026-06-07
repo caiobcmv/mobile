@@ -20,7 +20,8 @@ router.put('/aluno/:id', authMiddleware(['coordinator']), coordenadorController.
 router.patch('/aluno/:id/inativar', authMiddleware(['coordinator', 'super_admin']), coordenadorController.patchInativarAluno);
 router.patch('/aluno/:id/status', authMiddleware(['coordinator', 'super_admin']), coordenadorController.patchStatusAluno);
 router.delete('/aluno/:id', authMiddleware(['coordinator']), coordenadorController.deleteAluno);
-router.get('/submissoes/:course_id?', authMiddleware(['coordinator', 'super_admin']), coordenadorController.getSubmissoes);
+router.get('/submissoes', authMiddleware(['coordinator', 'super_admin']), coordenadorController.getSubmissoes);
+router.get('/submissoes/:course_id', authMiddleware(['coordinator', 'super_admin']), coordenadorController.getSubmissoes);
 router.get('/submissao/:id', authMiddleware(['coordinator']), coordenadorController.getSubmissaoPorId);
 router.get('/submissao/:id/navegacao', authMiddleware(['coordinator', 'super_admin']), coordenadorController.getSubmissaoNavegacao);
 router.patch('/validar-lote', authMiddleware(['coordinator', 'super_admin']), coordenadorController.patchValidarLote);
