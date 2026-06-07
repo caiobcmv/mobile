@@ -75,29 +75,37 @@ export default function DashboardScreen({ navigation }: Props) {
 
   const percentual = resumo ? Math.round(resumo.percentual_total) : 70;
 
-  const handleExportPDF = async () => {
-    try {
-      const token = await AsyncStorage.getItem(STORAGE_KEYS.TOKEN);
-      if (!token) {
-        Alert.alert('Erro', 'Token de autenticação não encontrado.');
-        return;
-      }
-      const url = `${API_BASE_URL}/aluno/extrato/impressao?token=${token}`;
-      
-      if (Platform.OS === 'web') {
-        window.open(url, '_blank');
-      } else {
-        const supported = await Linking.canOpenURL(url);
-        if (supported) {
-          await Linking.openURL(url);
-        } else {
-          Alert.alert('Erro', 'Não foi possível abrir o link de exportação.');
-        }
-      }
-    } catch (err: any) {
-      console.error('Erro ao exportar PDF:', err);
-      Alert.alert('Erro', 'Ocorreu um erro ao tentar exportar o extrato.');
+  const handleExportPDF = () => {
+    let newWindow: any = null;
+    if (Platform.OS === 'web') {
+      newWindow = (window as any).open('about:blank', '_blank');
     }
+
+    AsyncStorage.getItem(STORAGE_KEYS.TOKEN)
+      .then((token) => {
+        if (!token) {
+          if (newWindow) newWindow.close();
+          Alert.alert('Erro', 'Token de autenticação não encontrado.');
+          return;
+        }
+        const url = `${API_BASE_URL}/aluno/extrato/impressao?token=${token}`;
+
+        if (Platform.OS === 'web') {
+          if (newWindow) {
+            newWindow.location.href = url;
+          }
+        } else {
+          Linking.openURL(url).catch((err) => {
+            console.error('Erro ao abrir o link:', err);
+            Alert.alert('Erro', 'Não foi possível abrir o link de exportação.');
+          });
+        }
+      })
+      .catch((err) => {
+        if (newWindow) newWindow.close();
+        console.error('Erro ao exportar PDF:', err);
+        Alert.alert('Erro', 'Ocorreu um erro ao tentar exportar o extrato.');
+      });
   };
 
   const aprovadasCount = allActivities.filter(a => a.status === 'approved' || a.status === 'aprovado').length;

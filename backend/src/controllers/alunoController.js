@@ -249,12 +249,12 @@ exports.getMinhasSubmissoes = async (req, res) => {
         let filtros = '';
 
         if (status) {
-            filtros += ` AND s.status = $${params.length + 1}::submission_status_enum`;
+            filtros += ` AND status = $${params.length + 1}::submission_status_enum`;
             params.push(status);
         }
 
         if (course_id) {
-            filtros += ` AND uc.course_id = $${params.length + 1}`;
+            filtros += ` AND course_id = $${params.length + 1}`;
             params.push(course_id);
         }
 
@@ -557,6 +557,7 @@ exports.getExtratoPrint = async (req, res) => {
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Extrato de Atividades Complementares - ${dados.email}</title>
     <style>
         body {
@@ -665,20 +666,63 @@ exports.getExtratoPrint = async (req, res) => {
         .btn-print:hover {
             background-color: #D96915;
         }
+        @media screen and (max-width: 600px) {
+            body {
+                padding: 15px;
+            }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            .header > div:last-child {
+                text-align: left;
+            }
+            .info-grid {
+                grid-template-columns: 1fr;
+                padding: 15px;
+            }
+            .no-print {
+                display: flex;
+                justify-content: space-between;
+                width: 100%;
+                gap: 10px;
+            }
+            .btn-print {
+                flex: 1;
+                text-align: center;
+                font-size: 13px;
+                padding: 12px 10px;
+            }
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                margin-bottom: 20px;
+                border: 1px solid #E2E8F0;
+                border-radius: 6px;
+            }
+            table {
+                min-width: 600px;
+                margin-bottom: 0;
+            }
+        }
         @media print {
             .no-print { display: none; }
             body { padding: 0; }
+            .table-container { overflow: visible !important; border: none !important; }
+            table { min-width: 100% !important; }
         }
     </style>
 </head>
 <body>
-    <div class="no-print">
+    <div class="no-print" style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button class="btn-print" onclick="voltarOuFechar()" style="background-color: #64748B;">VOLTAR</button>
         <button class="btn-print" onclick="window.print()">IMPRIMIR / EXPORTAR PDF</button>
     </div>
 
     <div class="header">
         <div style="display: flex; align-items: center; gap: 15px;">
-            <img src="/assets/logo_senac.png" alt="Senac Logo" style="height: 50px; object-fit: contain;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/8/86/Senac_logo.svg" alt="Senac Logo" style="height: 50px; object-fit: contain;">
             <div>
                 <div class="logo-title" style="font-size: 18px; margin: 0;">PORTAL DE HORAS COMPLEMENTARES</div>
                 <div class="logo-sub" style="font-size: 11px; margin: 0; letter-spacing: 0.5px;">EXTRATO ACADÊMICO OFICIAL</div>
@@ -711,66 +755,77 @@ exports.getExtratoPrint = async (req, res) => {
     </div>
 
     <h2>Limites e Integralização por Categoria</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>CATEGORIA</th>
-                <th>MÍNIMO EXIGIDO</th>
-                <th>MÁXIMO PERMITIDO</th>
-                <th>TOTAL INTEGRALIZADO</th>
-            </tr>
-        </thead>
-        <tbody>
-            ${limites.map(l => `
+    <div class="table-container">
+        <table>
+            <thead>
                 <tr>
-                    <td>${l.categoria}</td>
-                    <td>${l.min_horas}h</td>
-                    <td>${l.max_horas}h</td>
-                    <td style="font-weight: 700; color: ${l.horas_aprovadas >= l.max_horas ? '#065F46' : '#334155'}">${l.horas_aprovadas}h</td>
+                    <th>CATEGORIA</th>
+                    <th>MÍNIMO EXIGIDO</th>
+                    <th>MÁXIMO PERMITIDO</th>
+                    <th>TOTAL INTEGRALIZADO</th>
                 </tr>
-            `).join('')}
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                ${limites.map(l => `
+                    <tr>
+                        <td>${l.categoria}</td>
+                        <td>${l.min_horas}h</td>
+                        <td>${l.max_horas}h</td>
+                        <td style="font-weight: 700; color: ${l.horas_aprovadas >= l.max_horas ? '#065F46' : '#334155'}">${l.horas_aprovadas}h</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    </div>
 
     <h2>Histórico de Submissões</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>TÍTULO DO CERTIFICADO</th>
-                <th>CATEGORIA</th>
-                <th>DATA DE SUBMISSÃO</th>
-                <th>HORAS SOLICITADAS</th>
-                <th>HORAS APROVADAS</th>
-                <th>STATUS</th>
-            </tr>
-        </thead>
-        <tbody>
-            ${submissoes.rows.map(s => {
-                const status = (s.status || 'submitted').toLowerCase();
-                let badgeClass = 'badge-pending';
-                let statusLabel = 'EM ANÁLISE';
-                if (status === 'approved' || status === 'aprovado') { badgeClass = 'badge-approved'; statusLabel = 'APROVADO'; }
-                else if (status === 'rejected' || status === 'rejeitado') { badgeClass = 'badge-rejected'; statusLabel = 'REJEITADO'; }
-                else if (status === 'returned_for_adjustment') { badgeClass = 'badge-returned'; statusLabel = 'DEVOLVIDO'; }
-
-                const dateStr = s.submitted_at || s.created_at;
-                const formattedDate = dateStr ? new Date(dateStr).toLocaleDateString('pt-BR') : '—';
-
-                return `
-                    <tr>
-                        <td><strong>${s.title}</strong><br><small style="color: #64748B;">${s.institution_name || ''}</small></td>
-                        <td>${(s.category_name || 'Geral').toUpperCase()}</td>
-                        <td>${formattedDate}</td>
-                        <td>${s.requested_hours}h</td>
-                        <td>${s.approved_hours !== null ? s.approved_hours + 'h' : '—'}</td>
-                        <td><span class="badge ${badgeClass}">${statusLabel}</span></td>
-                    </tr>
-                `;
-            }).join('')}
-        </tbody>
-    </table>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>TÍTULO DO CERTIFICADO</th>
+                    <th>CATEGORIA</th>
+                    <th>DATA DE SUBMISSÃO</th>
+                    <th>HORAS SOLICITADAS</th>
+                    <th>HORAS APROVADAS</th>
+                    <th>STATUS</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${submissoes.rows.map(s => {
+                    const status = (s.status || 'submitted').toLowerCase();
+                    let badgeClass = 'badge-pending';
+                    let statusLabel = 'EM ANÁLISE';
+                    if (status === 'approved' || status === 'aprovado') { badgeClass = 'badge-approved'; statusLabel = 'APROVADO'; }
+                    else if (status === 'rejected' || status === 'rejeitado') { badgeClass = 'badge-rejected'; statusLabel = 'REJEITADO'; }
+                    else if (status === 'returned_for_adjustment') { badgeClass = 'badge-returned'; statusLabel = 'DEVOLVIDO'; }
+    
+                    const dateStr = s.submitted_at || s.created_at;
+                    const formattedDate = dateStr ? new Date(dateStr).toLocaleDateString('pt-BR') : '—';
+    
+                    return `
+                        <tr>
+                            <td><strong>${s.title}</strong><br><small style="color: #64748B;">${s.institution_name || ''}</small></td>
+                            <td>${(s.category_name || 'Geral').toUpperCase()}</td>
+                            <td>${formattedDate}</td>
+                            <td>${s.requested_hours}h</td>
+                            <td>${s.approved_hours !== null ? s.approved_hours + 'h' : '—'}</td>
+                            <td><span class="badge ${badgeClass}">${statusLabel}</span></td>
+                        </tr>
+                    `;
+                }).join('')}
+            </tbody>
+        </table>
+    </div>
 
     <script>
+        function voltarOuFechar() {
+            if (window.opener || window.history.length <= 1) {
+                window.close();
+            } else {
+                history.back();
+            }
+        }
         window.onload = function() {
             setTimeout(function() {
                 window.print();
