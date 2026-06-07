@@ -4,7 +4,8 @@ const jwt = require('jsonwebtoken');
 
 exports.login = async (req, res) => {
      console.log('Entrou no login');
-    const { email, senha } = req.body;
+    const { email, senha, password } = req.body;
+    const actualSenha = senha || password;
     console.log('Login tentativa:', email);
 
     try {
@@ -13,7 +14,8 @@ exports.login = async (req, res) => {
              FROM users u
              JOIN user_roles ur ON ur.user_id = u.id
              JOIN roles r ON r.id = ur.role_id
-             WHERE u.email = $1 AND u.status = 'active'
+             LEFT JOIN student_profiles sp ON sp.user_id = u.id
+             WHERE (u.email = $1 OR u.cpf = $1 OR sp.ra = $1) AND u.status = 'active'
              GROUP BY u.id`,
             [email]
         );
@@ -24,7 +26,11 @@ exports.login = async (req, res) => {
             return res.status(401).json({ erro: "Email ou senha incorretos." });
         }
 
-        const senhaCorreta = await bcrypt.compare(senha, usuario.password_hash);
+        if (!actualSenha) {
+            return res.status(400).json({ erro: "Senha não fornecida." });
+        }
+
+        const senhaCorreta = await bcrypt.compare(actualSenha, usuario.password_hash);
         if (!senhaCorreta) {
             return res.status(401).json({ erro: "Email ou senha incorretos." });
         }
@@ -46,13 +52,24 @@ exports.login = async (req, res) => {
             { expiresIn: '8h' }
         );
 
+        const user = {
+            id: usuario.id,
+            name: usuario.full_name,
+            email: usuario.email,
+            role: usuario.roles && usuario.roles.length > 0 ? (
+                usuario.roles.includes('super_admin') ? 'superadmin' :
+                usuario.roles.includes('coordinator') ? 'coordenador' : 'aluno'
+            ) : 'aluno'
+        };
+
         res.status(200).json({
             mensagem: "Login realizado com sucesso!",
             token,
             perfis: usuario.roles,
             primeiroAcesso,
             nome: usuario.full_name,
-            email: usuario.email
+            email: usuario.email,
+            user
         });
 
     } catch (err) {
@@ -165,5 +182,44 @@ exports.primeiroAcesso = async (req, res) => {
 
     } catch (err) {
         res.status(500).json({ erro: "Erro ao redefinir senha: " + err.message });
+    }
+};
+
+exports.me = async (req, res) => {
+    try {
+        const resultado = await pool.query(
+            `SELECT u.id, u.full_name as nome, u.email, array_agg(r.name) AS perfis
+             FROM users u
+             JOIN user_roles ur ON ur.user_id = u.id
+             JOIN roles r ON r.id = ur.role_id
+             WHERE u.id = $1
+             GROUP BY u.id`,
+            [req.usuario.id]
+        );
+
+        if (resultado.rows.length === 0) {
+            return res.status(404).json({ erro: "Usuário não encontrado." });
+        }
+
+        const usuario = resultado.rows[0];
+
+        res.status(200).json({
+            id: usuario.id,
+            full_name: usuario.nome,
+            nome: usuario.nome,
+            email: usuario.email,
+            perfis: usuario.perfis,
+            user: {
+                id: usuario.id,
+                name: usuario.nome,
+                email: usuario.email,
+                role: usuario.perfis && usuario.perfis.length > 0 ? (
+                    usuario.perfis.includes('super_admin') ? 'superadmin' :
+                    usuario.perfis.includes('coordinator') ? 'coordenador' : 'aluno'
+                ) : 'aluno'
+            }
+        });
+    } catch (err) {
+        res.status(500).json({ erro: "Erro ao obter dados do usuário: " + err.message });
     }
 };

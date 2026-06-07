@@ -7,5 +7,6 @@ router.post('/login', authController.login);
 router.post('/setup', authController.setup);
 router.post('/trocar-senha', authMiddleware(['student', 'coordinator', 'super_admin']), authController.trocarSenha);
 router.post('/primeiro-acesso', authMiddleware(['student', 'coordinator', 'super_admin']), authController.primeiroAcesso);
+router.get('/me', authMiddleware(['student', 'coordinator', 'super_admin']), authController.me);
 
 module.exports = router;
