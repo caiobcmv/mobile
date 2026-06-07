@@ -22,6 +22,10 @@ router.get('/resumo-horas/:course_id', authMiddleware(['student', 'coordinator']
 router.get('/meus-dados', authMiddleware(['student', 'coordinator']), alunoController.getMeusDados);
 router.get('/cursos', authMiddleware(['student']), alunoController.getCursos);
 
+router.get('/notificacoes', authMiddleware(['student']), alunoController.getNotificacoes);
+router.post('/notificacoes/ler-todas', authMiddleware(['student']), alunoController.postMarcarTodasLidas);
+router.get('/extrato/impressao', alunoController.getExtratoPrint);
+
 // permite anexar arquivos adicionais a uma submissão que já tem
 router.post('/submissao/:submission_id/arquivo', authMiddleware(['student']), uploadController.uploadCertificado);
 router.get('/submissao/:submission_id/arquivo', authMiddleware(['student']), uploadController.getCertificado);

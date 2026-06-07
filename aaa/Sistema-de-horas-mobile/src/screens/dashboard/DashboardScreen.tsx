@@ -8,6 +8,8 @@ import {
   StatusBar,
   ActivityIndicator,
   Alert,
+  Platform,
+  Linking,
 } from 'react-native';
 import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,7 +19,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path } from 'react-native-svg';
 import { RootStackParamList, HourSubmission } from '../../types';
 import { hoursService, ResumoHorasResponse, MeusDadosResponse } from '../../services/api/hoursService';
-import { STORAGE_KEYS } from '../../constants';
+import { STORAGE_KEYS, API_BASE_URL } from '../../constants';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Dashboard'>;
 
@@ -72,6 +74,31 @@ export default function DashboardScreen({ navigation }: Props) {
   );
 
   const percentual = resumo ? Math.round(resumo.percentual_total) : 70;
+
+  const handleExportPDF = async () => {
+    try {
+      const token = await AsyncStorage.getItem(STORAGE_KEYS.TOKEN);
+      if (!token) {
+        Alert.alert('Erro', 'Token de autenticação não encontrado.');
+        return;
+      }
+      const url = `${API_BASE_URL}/aluno/extrato/impressao?token=${token}`;
+      
+      if (Platform.OS === 'web') {
+        window.open(url, '_blank');
+      } else {
+        const supported = await Linking.canOpenURL(url);
+        if (supported) {
+          await Linking.openURL(url);
+        } else {
+          Alert.alert('Erro', 'Não foi possível abrir o link de exportação.');
+        }
+      }
+    } catch (err: any) {
+      console.error('Erro ao exportar PDF:', err);
+      Alert.alert('Erro', 'Ocorreu um erro ao tentar exportar o extrato.');
+    }
+  };
 
   const aprovadasCount = allActivities.filter(a => a.status === 'approved' || a.status === 'aprovado').length;
   const reprovadasCount = allActivities.filter(a => a.status === 'rejected' || a.status === 'rejeitado').length;
@@ -228,9 +255,7 @@ export default function DashboardScreen({ navigation }: Props) {
             <TouchableOpacity 
               style={styles.pdfButton} 
               activeOpacity={0.7}
-              onPress={() => {
-                Alert.alert('Exportação', 'Exportação de extrato em PDF iniciada.');
-              }}
+              onPress={handleExportPDF}
             >
               <Text style={styles.pdfButtonText}>Exportar Extratos de Horas (PDF)</Text>
             </TouchableOpacity>

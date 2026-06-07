@@ -2,6 +2,7 @@ const pool = require('../config/database');
 const registrarLog = require('../utils/logger');
 const { emailNovaSubmissao } = require('../services/emailService');
 const { processarEInserirArquivo } = require('./uploadController');
+const jwt = require('jsonwebtoken');
 
 /**
  * POST /aluno/submissao
@@ -428,5 +429,362 @@ exports.getCursos = async (req, res) => {
         res.status(200).json(resultado.rows);
     } catch (err) {
         res.status(500).json({ erro: "Erro ao buscar cursos do aluno: " + err.message });
+    }
+};
+
+exports.getNotificacoes = async (req, res) => {
+    const user_id = req.usuario.id;
+    try {
+        const resultado = await pool.query(
+            `SELECT * FROM notifications
+             WHERE user_id = $1
+             ORDER BY created_at DESC`,
+            [user_id]
+        );
+        res.status(200).json(resultado.rows);
+    } catch (err) {
+        res.status(500).json({ erro: err.message });
+    }
+};
+
+exports.postMarcarTodasLidas = async (req, res) => {
+    const user_id = req.usuario.id;
+    try {
+        await pool.query(
+            `UPDATE notifications
+             SET is_read = true, read_at = NOW()
+             WHERE user_id = $1 AND is_read = false`,
+            [user_id]
+        );
+        res.status(200).json({ mensagem: "Notificações marcadas como lidas com sucesso!" });
+    } catch (err) {
+        res.status(500).json({ erro: err.message });
+    }
+};
+
+exports.getExtratoPrint = async (req, res) => {
+    const { token } = req.query;
+    if (!token) {
+        return res.status(401).send("<h1>Acesso negado: Token não fornecido.</h1>");
+    }
+
+    try {
+        const dados = jwt.verify(token, process.env.JWT_SECRET);
+        const user_id = dados.id;
+
+        // 1. Dados do aluno e curso ativo
+        const defaultCourse = await pool.query(
+            `SELECT course_id FROM user_courses WHERE user_id = $1 AND is_active = true LIMIT 1`,
+            [user_id]
+        );
+        if (defaultCourse.rows.length === 0) {
+            return res.status(404).send("<h1>Aluno não matriculado em nenhum curso ativo.</h1>");
+        }
+        const course_id = defaultCourse.rows[0].course_id;
+
+        const userCourse = await pool.query(
+            `SELECT uc.course_id, c.name as course_name, c.minimum_required_hours
+             FROM user_courses uc
+             JOIN courses c ON c.id = uc.course_id
+             WHERE uc.user_id = $1 AND uc.course_id = $2 AND uc.is_active = true`,
+            [user_id, course_id]
+        );
+        
+        if (userCourse.rows.length === 0) {
+            return res.status(404).send("<h1>Aluno não matriculado neste curso.</h1>");
+        }
+        
+        const { course_name, minimum_required_hours } = userCourse.rows[0];
+
+        // 2. Estatísticas Gerais
+        const stats = await pool.query(
+            `SELECT
+                COUNT(*) as total_submissoes,
+                SUM(approved_hours) as horas_aprovadas
+             FROM submissions s
+             JOIN user_courses uc ON uc.id = s.user_course_id
+             WHERE uc.user_id = $1 AND uc.course_id = $2`,
+            [user_id, course_id]
+        );
+        
+        // 3. Submissões
+        const submissoes = await pool.query(
+            `SELECT *
+             FROM view_submissoes_alunos
+             WHERE user_id = $1 AND course_id = $2
+             ORDER BY submitted_at DESC`,
+            [user_id, course_id]
+        );
+
+        // 4. Limites por categoria
+        const regras = await pool.query(
+            `SELECT car.*, cat.name as category_name
+             FROM course_activity_rules car
+             JOIN categories cat ON cat.id = car.category_id
+             WHERE car.course_id = $1`,
+            [course_id]
+        );
+
+        const aprovadas = await pool.query(
+            `SELECT s.category_id, SUM(s.approved_hours) as total_aprovado
+             FROM submissions s
+             JOIN user_courses uc ON uc.id = s.user_course_id
+             WHERE uc.user_id = $1 AND uc.course_id = $2 AND s.status = 'approved'
+             GROUP BY s.category_id`,
+            [user_id, course_id]
+        );
+
+        const aprovadasMap = {};
+        aprovadas.rows.forEach(r => {
+            aprovadasMap[r.category_id] = parseFloat(r.total_aprovado) || 0;
+        });
+
+        const limites = regras.rows.map(regra => {
+            const horasAprovadas = aprovadasMap[regra.category_id] || 0;
+            return {
+                categoria: regra.category_name,
+                min_horas: regra.min_hours,
+                max_horas: regra.max_hours,
+                horas_aprovadas: horasAprovadas
+            };
+        });
+
+        const totalIntegralizado = Object.values(aprovadasMap).reduce((a, b) => a + b, 0);
+        const percentual = Math.min(100, (totalIntegralizado / minimum_required_hours) * 100);
+
+        const html = `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Extrato de Atividades Complementares - ${dados.email}</title>
+    <style>
+        body {
+            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+            color: #334155;
+            margin: 0;
+            padding: 30px;
+            background-color: #ffffff;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #1B3A6B;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+        .logo-title {
+            color: #1B3A6B;
+            font-size: 24px;
+            font-weight: 800;
+        }
+        .logo-sub {
+            color: #E87722;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        h1, h2 {
+            color: #1B3A6B;
+        }
+        h1 {
+            font-size: 22px;
+            margin-top: 0;
+        }
+        h2 {
+            font-size: 16px;
+            border-bottom: 1px solid #E2E8F0;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+            background-color: #F8FAFC;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #E2E8F0;
+        }
+        .info-item {
+            font-size: 14px;
+        }
+        .info-label {
+            font-weight: 700;
+            color: #64748B;
+            margin-bottom: 4px;
+        }
+        .info-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1B3A6B;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        th, td {
+            text-align: left;
+            padding: 10px 12px;
+            border-bottom: 1px solid #E2E8F0;
+            font-size: 13px;
+        }
+        th {
+            background-color: #F1F5F9;
+            color: #1B3A6B;
+            font-weight: 700;
+        }
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 11px;
+            display: inline-block;
+        }
+        .badge-approved { background-color: #D1FAE5; color: #065F46; }
+        .badge-pending { background-color: #FEF3C7; color: #92400E; }
+        .badge-rejected { background-color: #FEE2E2; color: #991B1B; }
+        .badge-returned { background-color: #E0F2FE; color: #075985; }
+        .no-print {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+        .btn-print {
+            background-color: #E87722;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .btn-print:hover {
+            background-color: #D96915;
+        }
+        @media print {
+            .no-print { display: none; }
+            body { padding: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <button class="btn-print" onclick="window.print()">IMPRIMIR / EXPORTAR PDF</button>
+    </div>
+
+    <div class="header">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <img src="/assets/logo_senac.png" alt="Senac Logo" style="height: 50px; object-fit: contain;">
+            <div>
+                <div class="logo-title" style="font-size: 18px; margin: 0;">PORTAL DE HORAS COMPLEMENTARES</div>
+                <div class="logo-sub" style="font-size: 11px; margin: 0; letter-spacing: 0.5px;">EXTRATO ACADÊMICO OFICIAL</div>
+            </div>
+        </div>
+        <div style="text-align: right; font-size: 12px; color: #64748B;">
+            Gerado em ${new Date().toLocaleDateString('pt-BR')}<br>${new Date().toLocaleTimeString('pt-BR')}
+        </div>
+    </div>
+
+    <h1>Extrato de Atividades Acadêmicas</h1>
+
+    <div class="info-grid">
+        <div class="info-item">
+            <div class="info-label">ALUNO</div>
+            <div class="info-value">${dados.email}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">CURSO</div>
+            <div class="info-value">${course_name}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">PROGRESSO DE HORAS</div>
+            <div class="info-value">${totalIntegralizado}h de ${minimum_required_hours}h (${Math.round(percentual)}%)</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">TOTAL DE SUBMISSÕES</div>
+            <div class="info-value">${stats.rows[0].total_submissoes || 0} atividades</div>
+        </div>
+    </div>
+
+    <h2>Limites e Integralização por Categoria</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>CATEGORIA</th>
+                <th>MÍNIMO EXIGIDO</th>
+                <th>MÁXIMO PERMITIDO</th>
+                <th>TOTAL INTEGRALIZADO</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${limites.map(l => `
+                <tr>
+                    <td>${l.categoria}</td>
+                    <td>${l.min_horas}h</td>
+                    <td>${l.max_horas}h</td>
+                    <td style="font-weight: 700; color: ${l.horas_aprovadas >= l.max_horas ? '#065F46' : '#334155'}">${l.horas_aprovadas}h</td>
+                </tr>
+            `).join('')}
+        </tbody>
+    </table>
+
+    <h2>Histórico de Submissões</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>TÍTULO DO CERTIFICADO</th>
+                <th>CATEGORIA</th>
+                <th>DATA DE SUBMISSÃO</th>
+                <th>HORAS SOLICITADAS</th>
+                <th>HORAS APROVADAS</th>
+                <th>STATUS</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${submissoes.rows.map(s => {
+                const status = (s.status || 'submitted').toLowerCase();
+                let badgeClass = 'badge-pending';
+                let statusLabel = 'EM ANÁLISE';
+                if (status === 'approved' || status === 'aprovado') { badgeClass = 'badge-approved'; statusLabel = 'APROVADO'; }
+                else if (status === 'rejected' || status === 'rejeitado') { badgeClass = 'badge-rejected'; statusLabel = 'REJEITADO'; }
+                else if (status === 'returned_for_adjustment') { badgeClass = 'badge-returned'; statusLabel = 'DEVOLVIDO'; }
+
+                const dateStr = s.submitted_at || s.created_at;
+                const formattedDate = dateStr ? new Date(dateStr).toLocaleDateString('pt-BR') : '—';
+
+                return `
+                    <tr>
+                        <td><strong>${s.title}</strong><br><small style="color: #64748B;">${s.institution_name || ''}</small></td>
+                        <td>${(s.category_name || 'Geral').toUpperCase()}</td>
+                        <td>${formattedDate}</td>
+                        <td>${s.requested_hours}h</td>
+                        <td>${s.approved_hours !== null ? s.approved_hours + 'h' : '—'}</td>
+                        <td><span class="badge ${badgeClass}">${statusLabel}</span></td>
+                    </tr>
+                `;
+            }).join('')}
+        </tbody>
+    </table>
+
+    <script>
+        window.onload = function() {
+            setTimeout(function() {
+                window.print();
+            }, 500);
+        };
+    </script>
+</body>
+</html>
+        `;
+
+        res.status(200).send(html);
+
+    } catch (err) {
+        console.error(err);
+        res.status(401).send("<h1>Acesso negado: Token inválido.</h1>");
     }
 };
