@@ -32,6 +32,7 @@ export default function SubmitDocumentScreen({ navigation, route }: Props) {
     name: string;
     mimeType: string;
     size?: number;
+    file?: any;
   } | null>(null);
   const insets = useSafeAreaInsets();
 
@@ -83,8 +84,9 @@ export default function SubmitDocumentScreen({ navigation, route }: Props) {
         const name = asset.fileName || `camera_photo_${Date.now()}.jpg`;
         const mimeType = asset.mimeType || 'image/jpeg';
         const size = asset.fileSize;
+        const file = (asset as any).file;
 
-        setSelectedFile({ uri, name, mimeType, size });
+        setSelectedFile({ uri, name, mimeType, size, file });
         setHasUploaded(true);
         startProgressSimulation();
       }
@@ -108,8 +110,9 @@ export default function SubmitDocumentScreen({ navigation, route }: Props) {
         const name = asset.name;
         const mimeType = asset.mimeType || 'application/octet-stream';
         const size = asset.size;
+        const file = (asset as any).file;
 
-        setSelectedFile({ uri, name, mimeType, size });
+        setSelectedFile({ uri, name, mimeType, size, file });
         setHasUploaded(true);
         startProgressSimulation();
       }
@@ -152,7 +155,8 @@ export default function SubmitDocumentScreen({ navigation, route }: Props) {
         String(submissionId),
         selectedFile.uri,
         selectedFile.name,
-        selectedFile.mimeType
+        selectedFile.mimeType,
+        selectedFile.file
       );
 
       setIsReviewModalVisible(false);

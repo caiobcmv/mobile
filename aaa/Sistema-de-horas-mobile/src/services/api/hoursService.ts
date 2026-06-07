@@ -77,13 +77,28 @@ export const hoursService = {
 
   getCursos: () => api.get<any[]>('/aluno/cursos'),
 
-  uploadFile: (submissionId: string, fileUri: string, fileName: string, fileMimeType: string) => {
+  uploadFile: async (submissionId: string, fileUri: string, fileName: string, fileMimeType: string, webFile?: any) => {
     const formData = new FormData();
-    formData.append('certificado', {
-      uri: fileUri,
-      name: fileName,
-      type: fileMimeType,
-    } as any);
+    
+    // Check if we are running in a web environment (browser)
+    if (typeof window !== 'undefined') {
+      let fileBlob = webFile;
+      if (!fileBlob) {
+        try {
+          const response = await fetch(fileUri);
+          fileBlob = await response.blob();
+        } catch (err) {
+          console.error("Erro ao converter URI para Blob no web:", err);
+        }
+      }
+      formData.append('certificado', fileBlob, fileName);
+    } else {
+      formData.append('certificado', {
+        uri: fileUri,
+        name: fileName,
+        type: fileMimeType,
+      } as any);
+    }
 
     return api.post<{ mensagem: string; arquivo: any }>(
       `/aluno/submissao/${submissionId}/arquivo`,
