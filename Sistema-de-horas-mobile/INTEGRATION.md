@@ -18,24 +18,24 @@ Telas ajustadas:
 ---
 
 ### 2. 🔌 Ajuste de Rede e Comunicação (Mobile ↔ Backend)
-* **IP da Rede Local**: Editamos o arquivo [constants/index.ts](file:///c:/Users/User/Desktop/mobile/aaa/Sistema-de-horas-mobile/src/constants/index.ts) para apontar para a máquina host usando o endereço de IP da rede (`192.168.0.3` na porta `3001`):
+* **IP da Rede Local**: Editamos o arquivo [constants/index.ts](src/constants/index.ts) para apontar para a máquina host usando o endereço de IP da rede (`192.168.0.3` na porta `3001`):
   ```typescript
   export const API_BASE_URL = 'http://192.168.0.3:3001';
   ```
   *(Celulares físicos e emuladores precisam do IP real da máquina na mesma rede Wi-Fi para acessar o servidor local em vez de usar `localhost`).*
-* **Banco de Dados (.env)**: Resolvemos o erro `500 SASL SCRAM client password must be a string` copiando o arquivo `.env` para a **raiz** da pasta do backend `sistema-horas-complementares`. Isso permitiu que o pacote `dotenv` injetasse corretamente as 6 variáveis de configuração do PostgreSQL ao iniciar o servidor.
+* **Banco de Dados (.env)**: Resolvemos o erro `500 SASL SCRAM client password must be a string` copiando o arquivo `.env` para a **raiz** da pasta do backend `backend`. Isso permitiu que o pacote `dotenv` injetasse corretamente as 6 variáveis de configuração do PostgreSQL ao iniciar o servidor.
 
 ---
 
 ### 3. 🎯 Tela de Boas-Vindas Dinâmica (WelcomeScreen)
-Atualizamos os botões no rodapé da primeira tela ([WelcomeScreen.tsx](file:///c:/Users/User/Desktop/mobile/aaa/Sistema-de-horas-mobile/src/screens/welcome/WelcomeScreen.tsx)) para dividir os fluxos de acesso:
+Atualizamos os botões no rodapé da primeira tela ([WelcomeScreen.tsx](src/screens/welcome/WelcomeScreen.tsx)) para dividir os fluxos de acesso:
 * **Primeiro Acesso**: Botão azul primário que direciona para a criação da senha inicial (`FirstAccessScreen`).
 * **Já tenho uma conta**: Botão secundário elegante (*outlined*) que direciona direto para a tela de `LoginScreen`.
 
 ---
 
 ### 4. 🔑 Tela de Login, Validações e Máscaras
-* **Máscara Inteligente**: O campo "Matrícula ou E-mail" em [LoginScreen.tsx](file:///c:/Users/User/Desktop/mobile/aaa/Sistema-de-horas-mobile/src/screens/auth/LoginScreen.tsx) detecta se o usuário está digitando apenas números. Se for numérico (Matrícula), o input limita a entrada automaticamente a **10 dígitos**; se contiver letras ou `@`, permite formato de e-mail livre.
+* **Máscara Inteligente**: O campo "Matrícula ou E-mail" em [LoginScreen.tsx](src/screens/auth/LoginScreen.tsx) detecta se o usuário está digitando apenas números. Se for numérico (Matrícula), o input limita a entrada automaticamente a **10 dígitos**; se contiver letras ou `@`, permite formato de e-mail livre.
 * **Erros de Senha e Credenciais**: Integramos a chamada real de login. Caso as credenciais inseridas estejam erradas, a tela captura a mensagem `"Email ou senha incorretos."` vinda do banco de dados e exibe-a em vermelho acima do botão de login.
 
 ---
@@ -46,22 +46,22 @@ Atualizamos os botões no rodapé da primeira tela ([WelcomeScreen.tsx](file:///
 * **Perfil do Usuário**: Mostra e-mail e estatísticas reais do aluno. Integramos o botão "Sair" com a lógica de `logout()` do hook `useAuth()` para limpar os tokens da sessão e do `AsyncStorage`.
 * **Criação de Submissões**:
   * Adicionamos o campo **Título da Atividade** no formulário de preenchimento.
-  * O dropdown de categorias em [SubmitHoursScreen.tsx](file:///c:/Users/User/Desktop/mobile/aaa/Sistema-de-horas-mobile/src/screens/hours/SubmitHoursScreen.tsx) agora lista dinamicamente as categorias e regras vinculadas ao curso do aluno logado.
-  * O botão de confirmação em [SubmitDocumentScreen.tsx](file:///c:/Users/User/Desktop/mobile/aaa/Sistema-de-horas-mobile/src/screens/hours/SubmitDocumentScreen.tsx) dispara a gravação real chamando `hoursService.create(...)`, inserindo a nova linha na tabela `submissions` do banco PostgreSQL.
+  * O dropdown de categorias em [SubmitHoursScreen.tsx](src/screens/hours/SubmitHoursScreen.tsx) agora lista dinamicamente as categorias e regras vinculadas ao curso do aluno logado.
+  * O botão de confirmação em [SubmitDocumentScreen.tsx](src/screens/hours/SubmitDocumentScreen.tsx) dispara a gravação real chamando `hoursService.create(...)`, inserindo a nova linha na tabela `submissions` do banco PostgreSQL.
 
 ---
 
 ## 🚀 Como Iniciar e Testar o Sistema Completo
 
 ### Passo 1: Iniciar o Backend
-Abra um terminal na raiz do diretório `sistema-horas-complementares` e execute:
+Abra um terminal na raiz do diretório `backend` e execute:
 ```bash
 npm run dev
 ```
 O console confirmará: `Servidor rodando na porta 3001` e `injecting env (6) from .env`.
 
 ### Passo 2: Iniciar o Mobile (Metro Bundler)
-Abra outro terminal na pasta `aaa/Sistema-de-horas-mobile` e execute:
+Abra outro terminal na pasta `Sistema-de-horas-mobile` e execute:
 ```bash
 npm run start
 ```

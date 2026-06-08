@@ -10,7 +10,7 @@ Sistema web para gestão de atividades complementares dos alunos do SENAC, com p
 /
 ├── backend/                  # API Node.js + Express
 ├── frontend/                 # Páginas HTML/CSS/JS
-└── banco_atv_complementares/ # Scripts SQL do banco de dados
+└── Sistema-de-horas-mobile/  # Aplicativo Mobile React Native + Expo
 ```
 
 ---
@@ -35,14 +35,14 @@ CREATE DATABASE atividades_complementares_senac;
 
 ### 2. Execute os scripts SQL na ordem
 
-Abra o pgAdmin (ou `psql`) e execute os arquivos da pasta `banco_atv_complementares/`:
+Abra o pgAdmin (ou `psql`) e execute os arquivos da pasta `backend/`:
 
 ```
-1. schema.sql   → Cria todas as tabelas
-2. seed.sql     → Insere dados iniciais (cursos, categorias, usuários)
+1. schema.sql       → Cria todas as tabelas
+2. data_insert.sql  → Insere dados iniciais (cursos, categorias, usuários)
 ```
 
-> ⚠️ O `seed.sql` já possui usuários com senha `123456` (em bcrypt). Não é necessário gerar hashes manualmente.
+> ⚠️ O `data_insert.sql` já possui usuários com senha `123456` (em bcrypt). Não é necessário gerar hashes manualmente.
 
 ---
 

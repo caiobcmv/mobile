@@ -172,7 +172,7 @@ Os arquivos gerados serão salvos na pasta **`dist/`**.
 Você pode hospedar essa pasta `dist/` automaticamente na Vercel a cada push no GitHub:
 1. Crie um projeto na **[Vercel](https://vercel.com/)** e importe seu repositório.
 2. Configure as seguintes opções de deploy:
-   *   **Root Directory (Diretório Raiz):** `aaa/Sistema-de-horas-mobile`
+   *   **Root Directory (Diretório Raiz):** `Sistema-de-horas-mobile`
    *   **Build Command (Comando de Build):** `npx expo export --platform web`
    *   **Output Directory (Diretório de Saída):** `dist`
 3. Clique em **Deploy** e o Vercel publicará seu aplicativo móvel na web de forma automática!
